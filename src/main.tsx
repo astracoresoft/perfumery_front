@@ -1,5 +1,13 @@
-import { createRoot } from "react-dom/client";
-import "./index.css";
+import ReactDOM from "react-dom/client";
 import App from "./App.tsx";
+import "./i18n";
 
-createRoot(document.getElementById("root")!).render(<App />);
+import { ThemeProvider, CssBaseline } from "@mui/material";
+import { theme } from "@/theme/theme.ts";
+
+ReactDOM.createRoot(document.getElementById("root")!).render(
+	<ThemeProvider theme={theme}>
+		<CssBaseline />
+		<App />
+	</ThemeProvider>
+);
