@@ -42,17 +42,14 @@ export function Header() {
 						alignItems: "center",
 					}}
 				>
-					{/* LOGO */}
 					<Typography sx={{ fontWeight: 700 }}>SOY NATURE</Typography>
 
-					{/* DESKTOP NAV */}
 					<Box sx={{ display: { xs: "none", md: "flex" }, gap: 3 }}>
 						{navItems.map((item, i) => (
 							<Button key={i}>{item}</Button>
 						))}
 					</Box>
 
-					{/* RIGHT SIDE BUTTONS */}
 					<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
 						<LanguageMenu />
 
@@ -60,7 +57,6 @@ export function Header() {
 							<ShoppingCartOutlinedIcon />
 						</IconButton>
 
-						{/* BURGER ONLY ON MOBILE */}
 						<IconButton sx={{ display: { xs: "flex", md: "none" } }} onClick={() => setOpen(true)}>
 							<MenuIcon />
 						</IconButton>
@@ -68,7 +64,6 @@ export function Header() {
 				</Toolbar>
 			</AppBar>
 
-			{/* DRAWER */}
 			<Drawer open={open} onClose={() => setOpen(false)}>
 				<Box sx={{ width: 250 }}>
 					<List>

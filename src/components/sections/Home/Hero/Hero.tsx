@@ -17,7 +17,6 @@ export function Hero() {
 				borderRadius: "16px",
 			}}
 		>
-			{/* TEXT BLOCK */}
 			<Box sx={{ maxWidth: "500px" }}>
 				<Typography
 					variant="h1"
@@ -45,7 +44,6 @@ export function Hero() {
 				</Button>
 			</Box>
 
-			{/* IMAGE BLOCK */}
 			<Box sx={{ display: "flex", justifyContent: "center" }}>
 				{/* <Box component="img" src={heroImage} alt="Lavender candle" sx={{ width: "400px" }} /> */}
 			</Box>
