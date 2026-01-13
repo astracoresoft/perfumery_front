@@ -1,10 +1,8 @@
-import { Hero } from "@/components/sections/Home/Hero/Hero";
 import { ProductsSection } from "@/components/sections/Products/ProductsSection/ProductsSection";
 
-export function HomePage() {
+export function ProductsPage() {
 	return (
 		<>
-			<Hero />
 			<ProductsSection />
 		</>
 	);
