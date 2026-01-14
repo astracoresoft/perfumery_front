@@ -1,6 +1,7 @@
-import { Box, Stack, Typography, IconButton, Button, Divider, useTheme, useMediaQuery } from "@mui/material";
+import { Box, Stack, Typography, IconButton, useTheme, useMediaQuery } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import type { CartItem } from "@/store/slices/cart.slice";
 
 interface CartProductItemProps {
@@ -16,71 +17,93 @@ const CartProductItem = ({ item, onQtyChange, onRemove }: CartProductItemProps) 
 	const total = item.price * item.qty;
 
 	return (
-		<Box py={3}>
-			{!isMobile ? (
-				<>
-					<Stack direction="row" alignItems="center" justifyContent="space-between">
-						{/* PRODUCT */}
-						<Stack direction="row" spacing={2} width="40%">
-							<img src={item.image} alt={item.title} width={80} />
-							<Box>
-								<Typography fontWeight={600}>{item.title}</Typography>
-								<Typography variant="body2">{item.variant.ml} ml</Typography>
-							</Box>
-						</Stack>
+		<Box
+			sx={{
+				bgcolor: "background.paper",
+				borderRadius: 3,
+				boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+				p: 2,
+				mb: 3,
+			}}
+		>
+			<Stack direction={isMobile ? "column" : "row"} spacing={2} alignItems={isMobile ? "stretch" : "center"}>
+				{/* IMAGE */}
+				<Box
+					component="img"
+					src={item.image}
+					alt={item.title}
+					sx={{
+						width: isMobile ? "100%" : 110,
+						height: isMobile ? 200 : 110,
+						objectFit: "cover",
+						borderRadius: 2,
+						flexShrink: 0,
+					}}
+				/>
 
-						{/* QTY */}
-						<Stack direction="row" spacing={1} alignItems="center">
-							<IconButton onClick={() => onQtyChange(item.productId, item.variant.ml, item.qty - 1)}>
-								<RemoveIcon />
-							</IconButton>
+				{/* INFO */}
+				<Stack spacing={0.5} flex={1}>
+					<Typography fontWeight={600} fontSize={16}>
+						{item.title}
+					</Typography>
 
-							<Typography>{item.qty}</Typography>
+					<Typography variant="body2" color="text.secondary">
+						{item.variant.ml} ml
+					</Typography>
 
-							<IconButton onClick={() => onQtyChange(item.productId, item.variant.ml, item.qty + 1)}>
-								<AddIcon />
-							</IconButton>
-						</Stack>
+					<Typography variant="body2">
+						{item.price} {item.currency}
+					</Typography>
+				</Stack>
 
-						<Typography>
-							{item.price} {item.currency}
-						</Typography>
+				{/* RIGHT SIDE */}
+				<Stack
+					direction={isMobile ? "row" : "column"}
+					alignItems="center"
+					justifyContent="space-between"
+					spacing={isMobile ? 2 : 1}
+				>
+					{/* QTY */}
+					<Stack
+						direction="row"
+						alignItems="center"
+						spacing={1}
+						sx={{
+							bgcolor: "#f5f5f5",
+							borderRadius: 999,
+							px: 1.5,
+							py: 0.5,
+						}}
+					>
+						<IconButton
+							size="small"
+							disabled={item.qty <= 1}
+							onClick={() => onQtyChange(item.productId, item.variant.ml, item.qty - 1)}
+						>
+							<RemoveIcon fontSize="small" />
+						</IconButton>
 
-						<Typography fontWeight={600}>
-							{total} {item.currency}
-						</Typography>
+						<Typography fontWeight={600}>{item.qty}</Typography>
 
-						<Button onClick={() => onRemove(item.productId, item.variant.ml)}>REMOVE</Button>
+						<IconButton
+							size="small"
+							onClick={() => onQtyChange(item.productId, item.variant.ml, item.qty + 1)}
+						>
+							<AddIcon fontSize="small" />
+						</IconButton>
 					</Stack>
 
-					<Divider sx={{ mt: 2 }} />
-				</>
-			) : (
-				<Box border="1px solid #e0e0e0" p={2} borderRadius={2}>
-					<Stack spacing={2}>
-						<Typography fontWeight={600}>{item.title}</Typography>
-						<Typography>{item.variant.ml} ml</Typography>
+					{/* TOTAL */}
+					<Typography fontWeight={700} fontSize={18} color="primary">
+						{total} {item.currency}
+					</Typography>
 
-						<Stack direction="row" spacing={1} alignItems="center">
-							<IconButton onClick={() => onQtyChange(item.productId, item.variant.ml, item.qty - 1)}>
-								<RemoveIcon />
-							</IconButton>
-
-							<Typography>{item.qty}</Typography>
-
-							<IconButton onClick={() => onQtyChange(item.productId, item.variant.ml, item.qty + 1)}>
-								<AddIcon />
-							</IconButton>
-						</Stack>
-
-						<Typography>
-							{total} {item.currency}
-						</Typography>
-
-						<Button onClick={() => onRemove(item.productId, item.variant.ml)}>REMOVE</Button>
-					</Stack>
-				</Box>
-			)}
+					{/* REMOVE */}
+					<IconButton color="error" onClick={() => onRemove(item.productId, item.variant.ml)}>
+						<DeleteOutlineIcon />
+					</IconButton>
+				</Stack>
+			</Stack>
 		</Box>
 	);
 };

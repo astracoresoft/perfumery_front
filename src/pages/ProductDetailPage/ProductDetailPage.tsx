@@ -1,6 +1,17 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 /* eslint-disable react-hooks/preserve-manual-memoization */
-import { Box, Typography, Stack, Button, Divider, IconButton, Chip, CircularProgress } from "@mui/material";
+import {
+	Box,
+	Typography,
+	Stack,
+	Button,
+	Divider,
+	IconButton,
+	Chip,
+	CircularProgress,
+	useTheme,
+	useMediaQuery,
+} from "@mui/material";
 import { useParams, Navigate } from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
@@ -20,6 +31,8 @@ import placeholderImg from "@/assets/images/testPerfume.png";
 export function ProductDetailPage() {
 	const { id: slug } = useParams<{ id: string }>();
 	const dispatch = useDispatch();
+	const theme = useTheme();
+	const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
 	const [product, setProduct] = useState<Product | null>(null);
 	const [loading, setLoading] = useState(true);
@@ -46,7 +59,7 @@ export function ProductDetailPage() {
 
 	if (loading) {
 		return (
-			<Box p={6} display="flex" justifyContent="center">
+			<Box py={10} display="flex" justifyContent="center">
 				<CircularProgress />
 			</Box>
 		);
@@ -57,18 +70,34 @@ export function ProductDetailPage() {
 	}
 
 	return (
-		<Box maxWidth="1200px" mx="auto" p={{ xs: 2, md: 6 }}>
-			<Stack direction={{ xs: "column", md: "row" }} spacing={6}>
-				<Box flex={1}>
-					<img
+		<Box maxWidth="1200px" mx="auto" px={{ xs: 2, md: 6 }} py={6}>
+			<Stack direction={isMobile ? "column" : "row"} spacing={6} alignItems="flex-start">
+				{/* IMAGE COLUMN */}
+				<Box
+					flex={1}
+					sx={{
+						bgcolor: "#fafafa",
+						borderRadius: 4,
+						p: 4,
+						display: "flex",
+						justifyContent: "center",
+					}}
+				>
+					<Box
+						component="img"
 						src={product.images?.[0] ?? placeholderImg}
 						alt={product.name}
-						style={{ width: "100%", maxWidth: 420, objectFit: "contain" }}
+						sx={{
+							width: "100%",
+							maxWidth: 360,
+							objectFit: "contain",
+						}}
 					/>
 				</Box>
 
+				{/* INFO COLUMN */}
 				<Box flex={1}>
-					<Typography variant="h5" fontWeight={700} mb={1}>
+					<Typography variant="h4" fontWeight={700} mb={1}>
 						{product.name}
 					</Typography>
 
@@ -76,49 +105,86 @@ export function ProductDetailPage() {
 						SKU: {product.sku}
 					</Typography>
 
-					<Stack direction="row" spacing={0.5} alignItems="center" mt={1} mb={3}>
+					{/* RATING */}
+					<Stack direction="row" spacing={0.5} alignItems="center" mt={2} mb={3}>
 						{Array.from({ length: 5 }).map((_, i) => (
-							<StarIcon key={i} fontSize="small" />
+							<StarIcon key={i} fontSize="small" color="warning" />
 						))}
 						<Typography variant="body2" ml={1}>
 							{product.reviewsCount} reviews
 						</Typography>
 					</Stack>
 
-					<Typography variant="h6" fontWeight={700} mb={3}>
-						{selectedVariant?.price}
+					{/* PRICE */}
+					<Typography fontSize={28} fontWeight={800} color="primary" mb={3}>
+						{selectedVariant?.price} {product.price.currency}
 					</Typography>
 
+					{/* VARIANTS */}
 					<Typography fontWeight={600} mb={1}>
 						Volume
 					</Typography>
-					<Stack direction="row" spacing={1} mb={3}>
+
+					<Stack direction="row" spacing={1} mb={4}>
 						{variants.map((v) => (
 							<Chip
 								key={v.ml}
 								label={`${v.ml} ml`}
 								clickable
-								color={selectedVariant?.ml === v.ml ? "primary" : "default"}
 								onClick={() => setSelectedVariant(v)}
+								sx={{
+									borderRadius: 2,
+									fontWeight: selectedVariant?.ml === v.ml ? 700 : 400,
+									bgcolor: selectedVariant?.ml === v.ml ? "primary.main" : "transparent",
+									color: selectedVariant?.ml === v.ml ? "white" : "text.primary",
+									border: "1px solid",
+									borderColor: selectedVariant?.ml === v.ml ? "primary.main" : "divider",
+								}}
 							/>
 						))}
 					</Stack>
 
+					{/* QTY */}
 					<Stack direction="row" alignItems="center" spacing={2} mb={4}>
-						<IconButton onClick={() => setQty(Math.max(1, qty - 1))}>
-							<RemoveIcon />
-						</IconButton>
-						<Typography>{qty}</Typography>
-						<IconButton onClick={() => setQty(qty + 1)}>
-							<AddIcon />
-						</IconButton>
+						<Stack
+							direction="row"
+							alignItems="center"
+							spacing={1}
+							sx={{
+								bgcolor: "#f5f5f5",
+								borderRadius: 999,
+								px: 1.5,
+								py: 0.5,
+							}}
+						>
+							<IconButton size="small" disabled={qty <= 1} onClick={() => setQty(Math.max(1, qty - 1))}>
+								<RemoveIcon fontSize="small" />
+							</IconButton>
+
+							<Typography fontWeight={600}>{qty}</Typography>
+
+							<IconButton size="small" onClick={() => setQty(qty + 1)}>
+								<AddIcon fontSize="small" />
+							</IconButton>
+						</Stack>
+
+						<Typography variant="body2" color="text.secondary">
+							In stock: {product.stock}
+						</Typography>
 					</Stack>
 
+					{/* CTA */}
 					<Button
 						fullWidth
 						size="large"
 						variant="contained"
 						disabled={!selectedVariant || product.stock === 0}
+						sx={{
+							height: 56,
+							fontSize: 16,
+							fontWeight: 600,
+							mb: 4,
+						}}
 						onClick={() =>
 							selectedVariant &&
 							dispatch(
@@ -133,22 +199,24 @@ export function ProductDetailPage() {
 								})
 							)
 						}
-						sx={{ mb: 4 }}
 					>
 						Add to cart
 					</Button>
 
-					<Typography variant="body2" color="text.secondary">
+					{/* DESCRIPTION */}
+					<Typography variant="body2" color="text.secondary" mb={4}>
 						{product.description}
 					</Typography>
 
 					<Divider sx={{ my: 3 }} />
 
+					{/* ACTIONS */}
 					<Stack direction="row" spacing={4}>
 						<Stack direction="row" spacing={1} alignItems="center">
 							<ShareIcon fontSize="small" />
 							<Typography variant="body2">Share</Typography>
 						</Stack>
+
 						<Stack direction="row" spacing={1} alignItems="center">
 							<MailOutlineIcon fontSize="small" />
 							<Typography variant="body2">Contact</Typography>

@@ -18,7 +18,6 @@ import {
 	InputAdornment,
 	Divider,
 } from "@mui/material";
-// import MenuIcon from "@mui/icons-material/Menu";
 import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
 import SearchIcon from "@mui/icons-material/Search";
 import { useTranslation } from "react-i18next";
@@ -36,12 +35,10 @@ export function Header() {
 	const [open, setOpen] = useState(false);
 	const [categories, setCategories] = useState<Category[]>([]);
 	const [brandSearch, setBrandSearch] = useState("");
+	const [mobileSearch, setMobileSearch] = useState("");
 	const [selectedBrand, setSelectedBrand] = useState("");
 
 	const cartCount = useSelector((state: RootState) => state.cart.items.reduce((sum, i) => sum + i.qty, 0));
-
-	// mobile search
-	const [mobileSearch, setMobileSearch] = useState("");
 
 	useEffect(() => {
 		getCategories(true).then((res) => {
@@ -55,27 +52,12 @@ export function Header() {
 		{ label: t("nav.blog"), path: "/blog" },
 	];
 
-	/* ---------------- DESKTOP FILTER ---------------- */
+	/* ================= ALPHABETICAL GROUPING ================= */
 
-	const filteredCategories = useMemo(() => {
-		return categories.filter((cat) => cat.name.toLowerCase().includes(brandSearch.toLowerCase()));
-	}, [categories, brandSearch]);
+	const groupedCategories = useMemo(() => {
+		const searchValue = (open ? mobileSearch : brandSearch).toLowerCase();
 
-	const handleBrandSelect = (slug: string) => {
-		setSelectedBrand("");
-		setBrandSearch("");
-		navigate(`/brand/${slug}`);
-	};
-
-	const handleNavigate = (path: string) => {
-		navigate(path);
-		setOpen(false);
-	};
-
-	/* ---------------- MOBILE GROUPING ---------------- */
-
-	const groupedMobileCategories = useMemo(() => {
-		const filtered = categories.filter((cat) => cat.name.toLowerCase().includes(mobileSearch.toLowerCase()));
+		const filtered = categories.filter((cat) => cat.name.toLowerCase().includes(searchValue));
 
 		const groups: Record<string, Category[]> = {};
 
@@ -87,11 +69,28 @@ export function Header() {
 
 		return Object.keys(groups)
 			.sort()
-			.reduce<Record<string, Category[]>>((acc, key) => {
-				acc[key] = groups[key];
+			.reduce<Record<string, Category[]>>((acc, letter) => {
+				acc[letter] = groups[letter].sort((a, b) => a.name.localeCompare(b.name));
 				return acc;
 			}, {});
-	}, [categories, mobileSearch]);
+	}, [categories, brandSearch, mobileSearch, open]);
+
+	/* ================= HANDLERS ================= */
+
+	const handleBrandSelect = (slug: string) => {
+		setSelectedBrand("");
+		setBrandSearch("");
+		setMobileSearch("");
+		setOpen(false);
+		navigate(`/brand/${slug}`);
+	};
+
+	const handleNavigate = (path: string) => {
+		navigate(path);
+		setOpen(false);
+	};
+
+	/* ================= RENDER ================= */
 
 	return (
 		<>
@@ -112,21 +111,31 @@ export function Header() {
 					</Typography>
 
 					{/* DESKTOP NAV */}
-					<Box sx={{ display: { xs: "none", md: "flex" }, gap: 3, alignItems: "center" }}>
+					<Box
+						sx={{
+							display: { xs: "none", md: "flex" },
+							gap: 3,
+							alignItems: "center",
+						}}
+					>
 						{navItems.map((item) => (
 							<Button key={item.path} onClick={() => handleNavigate(item.path)}>
 								{item.label}
 							</Button>
 						))}
 
-						{/* DESKTOP SELECT */}
+						{/* DESKTOP CATALOG */}
 						<Select
 							displayEmpty
 							value={selectedBrand}
 							renderValue={() => t("nav.catalog")}
-							sx={{ minWidth: 220, height: 36, backgroundColor: "#fafafa" }}
+							sx={{
+								minWidth: 220,
+								height: 36,
+								backgroundColor: "#fafafa",
+							}}
 							MenuProps={{
-								PaperProps: { sx: { maxHeight: 320 } },
+								PaperProps: { sx: { maxHeight: 360 } },
 							}}
 						>
 							<MenuItem disableRipple>
@@ -151,11 +160,38 @@ export function Header() {
 
 							<Divider />
 
-							{filteredCategories.map((cat) => (
-								<MenuItem key={cat._id} onClick={() => handleBrandSelect(cat.slug)}>
-									{cat.name}
-								</MenuItem>
+							{Object.entries(groupedCategories).map(([letter, items]) => (
+								<Box key={letter}>
+									<Typography
+										sx={{
+											px: 2,
+											pt: 1,
+											pb: 0.5,
+											fontSize: 12,
+											fontWeight: 700,
+											color: "text.secondary",
+										}}
+									>
+										{letter}
+									</Typography>
+
+									{items.map((cat) => (
+										<MenuItem
+											key={cat._id}
+											onClick={() => handleBrandSelect(cat.slug)}
+											sx={{ pl: 3 }}
+										>
+											{cat.name}
+										</MenuItem>
+									))}
+								</Box>
 							))}
+
+							{Object.keys(groupedCategories).length === 0 && (
+								<Typography sx={{ px: 2, py: 2 }} color="text.secondary">
+									{t("noResults")}
+								</Typography>
+							)}
 						</Select>
 					</Box>
 
@@ -168,21 +204,31 @@ export function Header() {
 								<ShoppingCartOutlinedIcon />
 							</Badge>
 						</IconButton>
+
+						{/* BURGER BUTTON */}
+						<IconButton sx={{ display: { xs: "flex", md: "none" } }} onClick={() => setOpen(true)}>
+							☰
+						</IconButton>
 					</Box>
 				</Toolbar>
 			</AppBar>
 
-			{/* ---------------- MOBILE DRAWER ---------------- */}
+			{/* ================= MOBILE DRAWER ================= */}
 			<Drawer open={open} onClose={() => setOpen(false)}>
-				<Box sx={{ width: 300, height: "100%", display: "flex", flexDirection: "column" }}>
-					{/* HEADER */}
+				<Box
+					sx={{
+						width: 300,
+						height: "100%",
+						display: "flex",
+						flexDirection: "column",
+					}}
+				>
 					<Box sx={{ px: 2, pt: 2 }}>
 						<Typography variant="h6" fontWeight={600}>
 							Menu
 						</Typography>
 					</Box>
 
-					{/* NAV */}
 					<List>
 						{navItems.map((item) => (
 							<ListItem key={item.path} disablePadding>
@@ -195,7 +241,6 @@ export function Header() {
 
 					<Divider />
 
-					{/* SEARCH */}
 					<Box sx={{ px: 2, py: 1 }}>
 						<TextField
 							fullWidth
@@ -213,9 +258,8 @@ export function Header() {
 						/>
 					</Box>
 
-					{/* CATEGORIES */}
 					<Box sx={{ flex: 1, overflowY: "auto", px: 1 }}>
-						{Object.entries(groupedMobileCategories).map(([letter, items]) => (
+						{Object.entries(groupedCategories).map(([letter, items]) => (
 							<Box key={letter}>
 								<Typography
 									sx={{
@@ -231,12 +275,7 @@ export function Header() {
 
 								{items.map((cat) => (
 									<ListItem key={cat._id} disablePadding>
-										<ListItemButton
-											onClick={() => {
-												navigate(`/brand/${cat.slug}`);
-												setOpen(false);
-											}}
-										>
+										<ListItemButton onClick={() => handleBrandSelect(cat.slug)}>
 											<ListItemText primary={cat.name} />
 										</ListItemButton>
 									</ListItem>
@@ -244,7 +283,7 @@ export function Header() {
 							</Box>
 						))}
 
-						{Object.keys(groupedMobileCategories).length === 0 && (
+						{Object.keys(groupedCategories).length === 0 && (
 							<Typography sx={{ px: 2, pt: 2 }} color="text.secondary">
 								{t("noResults")}
 							</Typography>
