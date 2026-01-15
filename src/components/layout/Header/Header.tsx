@@ -27,6 +27,7 @@ import { useSelector } from "react-redux";
 import type { RootState } from "@/store/store";
 import { getCategories } from "@/api/category/category.api";
 import type { Category } from "@/types/category.type";
+import logo from "@/assets/images/logo.jpg";
 
 export function Header() {
 	const { t } = useTranslation();
@@ -102,9 +103,19 @@ export function Header() {
 			>
 				<Toolbar sx={{ justifyContent: "space-between" }}>
 					{/* LOGO */}
-					<Typography sx={{ fontWeight: 700, cursor: "pointer" }} onClick={() => navigate("/")}>
-						SOY NATURE
-					</Typography>
+					<Box
+						component="img"
+						src={logo}
+						alt="Soy Nature"
+						onClick={() => navigate("/")}
+						sx={{
+							borderRadius: 100,
+							padding: 2,
+							height: 120, // регулируй под дизайн
+							cursor: "pointer",
+							objectFit: "contain",
+						}}
+					/>
 
 					{/* DESKTOP NAV */}
 					<Box
