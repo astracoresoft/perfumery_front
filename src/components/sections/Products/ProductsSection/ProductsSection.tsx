@@ -20,7 +20,7 @@ import EuroOutlinedIcon from "@mui/icons-material/EuroOutlined";
 import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
 import CheckBoxIcon from "@mui/icons-material/CheckBox";
 
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { useDispatch } from "react-redux";
 
@@ -43,10 +43,6 @@ interface Props {
 	categories?: Category[];
 }
 
-/* ================= CONSTS ================= */
-
-const STORAGE_KEY = "products_filters";
-
 /* ================= ICONS ================= */
 
 const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
@@ -56,18 +52,15 @@ const checkedIcon = <CheckBoxIcon fontSize="small" />;
 
 export function ProductsSection({ categories = [] }: Props) {
 	const navigate = useNavigate();
-	const { slug } = useParams<{ slug?: string }>();
-	const [searchParams, setSearchParams] = useSearchParams();
 	const dispatch = useDispatch();
+	const [searchParams, setSearchParams] = useSearchParams();
 
 	const [products, setProducts] = useState<Product[]>([]);
 	const [loading, setLoading] = useState(true);
 
-	/* ================= HELPERS ================= */
+	/* ================= URL STATE ================= */
 
 	const getParam = (key: string, fallback: string) => searchParams.get(key) ?? fallback;
-
-	/* ================= UI STATE (URL FIRST) ================= */
 
 	const [sort, setSort] = useState<SortOption>(getParam("sort", "name_asc") as SortOption);
 
@@ -81,11 +74,7 @@ export function ProductsSection({ categories = [] }: Props) {
 	const [itemsPerPage, setItemsPerPage] = useState(Number(getParam("limit", "12")));
 
 	const [priceBounds, setPriceBounds] = useState<[number, number]>([0, 0]);
-
-	const [priceRange, setPriceRange] = useState<[number, number]>([
-		Number(getParam("min", "0")),
-		Number(getParam("max", "0")),
-	]);
+	const [priceRange, setPriceRange] = useState<[number, number]>([0, 0]);
 
 	/* ================= LOAD PRODUCTS ================= */
 
@@ -99,22 +88,13 @@ export function ProductsSection({ categories = [] }: Props) {
 			const max = Math.max(...prices);
 
 			setPriceBounds([min, max]);
-
-			setPriceRange((prev) => (prev[0] === 0 && prev[1] === 0 ? [min, max] : prev));
+			setPriceRange([min, max]);
 
 			setLoading(false);
 		});
 	}, []);
 
-	/* ================= URL → BRAND SLUG ================= */
-
-	useEffect(() => {
-		if (slug && !selectedCategories.includes(slug)) {
-			setSelectedCategories([slug]);
-		}
-	}, [selectedCategories, slug]);
-
-	/* ================= SAVE TO URL + LOCALSTORAGE ================= */
+	/* ================= SAVE URL ================= */
 
 	useEffect(() => {
 		const params: Record<string, string> = {
@@ -132,28 +112,9 @@ export function ProductsSection({ categories = [] }: Props) {
 		if (priceRange[1] !== priceBounds[1]) params.max = String(priceRange[1]);
 
 		setSearchParams(params, { replace: true });
-		localStorage.setItem(STORAGE_KEY, JSON.stringify(params));
 	}, [sort, page, itemsPerPage, selectedCategories, inStockOnly, priceRange, priceBounds, setSearchParams]);
 
-	/* ================= RESTORE FROM LOCALSTORAGE ================= */
-
-	useEffect(() => {
-		if (searchParams.toString()) return;
-
-		const stored = localStorage.getItem(STORAGE_KEY);
-		if (!stored) return;
-
-		const data = JSON.parse(stored);
-
-		if (data.sort) setSort(data.sort);
-		if (data.page) setPage(Number(data.page));
-		if (data.limit) setItemsPerPage(Number(data.limit));
-		if (data.brands) setSelectedCategories(data.brands.split(","));
-		if (data.stock) setInStockOnly(data.stock === "1");
-		if (data.min && data.max) setPriceRange([Number(data.min), Number(data.max)]);
-	}, [searchParams]);
-
-	/* ================= RESET PAGE ON FILTER CHANGE ================= */
+	/* ================= RESET PAGE ================= */
 
 	useEffect(() => {
 		setPage(1);
@@ -164,12 +125,11 @@ export function ProductsSection({ categories = [] }: Props) {
 	const filteredProducts = useMemo(() => {
 		let result = [...products];
 
-		if (slug) {
-			result = result.filter((p) => p.category === slug || p.categories?.includes(slug));
-		}
-
+		// 🔥 БРЕНДЫ — ТОЛЬКО ЕСЛИ У ТОВАРА ОНИ ЕСТЬ
 		if (selectedCategories.length) {
-			result = result.filter((p) => p.categories?.some((c) => selectedCategories.includes(c)));
+			result = result.filter(
+				(p) => p.categories?.length && p.categories.some((c) => selectedCategories.includes(c))
+			);
 		}
 
 		if (inStockOnly) {
@@ -179,7 +139,7 @@ export function ProductsSection({ categories = [] }: Props) {
 		result = result.filter((p) => p.price.current >= priceRange[0] && p.price.current <= priceRange[1]);
 
 		return result;
-	}, [products, slug, selectedCategories, inStockOnly, priceRange]);
+	}, [products, selectedCategories, inStockOnly, priceRange]);
 
 	/* ================= SORT ================= */
 
@@ -306,30 +266,18 @@ export function ProductsSection({ categories = [] }: Props) {
 			</Box>
 
 			{/* GRID */}
-			<Box
-				sx={{
-					display: "flex",
-					flexWrap: "wrap",
-					gap: 4,
-					...productsFlexLayout,
-				}}
-			>
+			<Box sx={{ display: "flex", flexWrap: "wrap", gap: 4, ...productsFlexLayout }}>
 				{paginatedProducts.map((product) => {
 					const variants: ProductVariant[] = product.variants.length
 						? product.variants
-						: [
-								{
-									ml: 50,
-									price: product.price.current,
-								},
-						  ];
+						: [{ ml: 50, price: product.price.current }];
 
 					return (
 						<ProductCard
 							key={product.slug}
 							id={product.slug}
 							title={product.name}
-							description={product.shortDescription}
+							description={product.shortDescription || "No description"}
 							image={product.images?.[0] ?? img}
 							category={product.category ?? undefined}
 							inStock={product.stock > 0}

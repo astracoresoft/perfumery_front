@@ -46,11 +46,7 @@ export function Header() {
 		});
 	}, []);
 
-	const navItems = [
-		{ label: t("nav.home"), path: "/" },
-		{ label: t("nav.reviews"), path: "/reviews" },
-		{ label: t("nav.blog"), path: "/blog" },
-	];
+	const navItems = [{ label: t("nav.home"), path: "/" }];
 
 	/* ================= ALPHABETICAL GROUPING ================= */
 
@@ -130,15 +126,54 @@ export function Header() {
 							value={selectedBrand}
 							renderValue={() => t("nav.catalog")}
 							sx={{
-								minWidth: 220,
-								height: 36,
+								minWidth: 240,
+								height: 38,
+								px: 1.5,
+								borderRadius: "999px",
 								backgroundColor: "#fafafa",
+								boxShadow: "inset 0 0 0 1px rgba(0,0,0,0.08)",
+								"& .MuiSelect-select": {
+									display: "flex",
+									alignItems: "center",
+									fontSize: 14,
+									fontWeight: 500,
+									letterSpacing: "0.02em",
+								},
+								"& fieldset": {
+									border: "none",
+								},
+								"&:hover": {
+									backgroundColor: "#f3f3f3",
+								},
 							}}
 							MenuProps={{
-								PaperProps: { sx: { maxHeight: 360 } },
+								PaperProps: {
+									sx: {
+										mt: 1,
+										borderRadius: "16px",
+										maxHeight: 420,
+										boxShadow: `
+          0 20px 40px rgba(0,0,0,0.08),
+          inset 0 0 0 1px rgba(255,255,255,0.6)
+        `,
+									},
+								},
 							}}
 						>
-							<MenuItem disableRipple>
+							{/* SEARCH */}
+							<Box
+								sx={{
+									position: "sticky",
+									top: 0,
+									zIndex: 1,
+									backgroundColor: "background.paper",
+									px: 2,
+									py: 1.5,
+									borderBottom: "1px solid",
+									borderColor: "divider",
+								}}
+								onClick={(e) => e.stopPropagation()}
+							>
 								<TextField
 									autoFocus
 									fullWidth
@@ -146,49 +181,76 @@ export function Header() {
 									placeholder={t("search")}
 									value={brandSearch}
 									onChange={(e) => setBrandSearch(e.target.value)}
-									onClick={(e) => e.stopPropagation()}
-									onKeyDown={(e) => e.stopPropagation()}
 									InputProps={{
 										startAdornment: (
 											<InputAdornment position="start">
 												<SearchIcon fontSize="small" />
 											</InputAdornment>
 										),
+										sx: {
+											borderRadius: "999px",
+											backgroundColor: "#fafafa",
+										},
 									}}
 								/>
-							</MenuItem>
-
-							<Divider />
+							</Box>
 
 							{Object.entries(groupedCategories).map(([letter, items]) => (
-								<Box key={letter}>
+								<Box key={letter} sx={{ py: 0.5 }}>
+									{/* LETTER */}
 									<Typography
 										sx={{
-											px: 2,
-											pt: 1,
-											pb: 0.5,
-											fontSize: 12,
+											px: 3,
+											py: 0.5,
+											fontSize: 11,
 											fontWeight: 700,
+											letterSpacing: "0.18em",
+											textTransform: "uppercase",
 											color: "text.secondary",
 										}}
 									>
 										{letter}
 									</Typography>
 
-									{items.map((cat) => (
-										<MenuItem
-											key={cat._id}
-											onClick={() => handleBrandSelect(cat.slug)}
-											sx={{ pl: 3 }}
-										>
-											{cat.name}
-										</MenuItem>
-									))}
+									{items.map((cat) => {
+										const selected = cat.slug === selectedBrand;
+
+										return (
+											<MenuItem
+												key={cat._id}
+												onClick={() => handleBrandSelect(cat.slug)}
+												sx={{
+													px: 3,
+													py: 1,
+													fontSize: 14,
+													borderRadius: "10px",
+													mx: 1,
+													my: 0.5,
+													transition: "0.15s",
+													backgroundColor: selected ? "rgba(0,0,0,0.04)" : "transparent",
+													fontWeight: selected ? 600 : 400,
+													"&:hover": {
+														backgroundColor: "rgba(0,0,0,0.06)",
+													},
+												}}
+											>
+												{cat.name}
+											</MenuItem>
+										);
+									})}
 								</Box>
 							))}
 
 							{Object.keys(groupedCategories).length === 0 && (
-								<Typography sx={{ px: 2, py: 2 }} color="text.secondary">
+								<Typography
+									sx={{
+										px: 3,
+										py: 3,
+										textAlign: "center",
+										fontSize: 14,
+									}}
+									color="text.secondary"
+								>
 									{t("noResults")}
 								</Typography>
 							)}

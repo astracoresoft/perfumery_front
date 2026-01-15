@@ -4,7 +4,7 @@ import { api } from "@/api/axios";
  * Получить все продукты
  * GET /api/products
  */
-export const getProducts = (includeInactive = false) => {
+export const getProducts = (includeInactive = true) => {
 	return api.get("/products", {
 		params: { includeInactive },
 	});
