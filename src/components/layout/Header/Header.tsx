@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { LanguageMenu } from "@/components/ui/LanguageSwitchButton/LanguageSwitchButton";
 import {
 	AppBar,
 	Toolbar,
@@ -17,19 +16,27 @@ import {
 	TextField,
 	InputAdornment,
 	Divider,
+	Badge,
 } from "@mui/material";
+
 import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
 import SearchIcon from "@mui/icons-material/Search";
+
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { Badge } from "@mui/material";
 import { useSelector } from "react-redux";
+
 import type { RootState } from "@/store/store";
 import { getCategories } from "@/api/category/category.api";
 import type { Category } from "@/types/category.type";
+
+import { LanguageMenu } from "@/components/ui/LanguageSwitchButton/LanguageSwitchButton";
+import { tLocal } from "@/i18n/i18n";
+
 import logo from "@/assets/images/logo.jpg";
 
 export function Header() {
+	useTranslation();
 	const { t } = useTranslation();
 	const navigate = useNavigate();
 
@@ -49,17 +56,17 @@ export function Header() {
 
 	const navItems = [{ label: t("nav.home"), path: "/" }];
 
-	/* ================= ALPHABETICAL GROUPING ================= */
+	/* ================= GROUP CATEGORIES ================= */
 
 	const groupedCategories = useMemo(() => {
 		const searchValue = (open ? mobileSearch : brandSearch).toLowerCase();
 
-		const filtered = categories.filter((cat) => cat.name.toLowerCase().includes(searchValue));
+		const filtered = categories.filter((cat) => tLocal(cat.name).toLowerCase().includes(searchValue));
 
 		const groups: Record<string, Category[]> = {};
 
 		filtered.forEach((cat) => {
-			const letter = cat.name.charAt(0).toUpperCase();
+			const letter = tLocal(cat.name).charAt(0).toUpperCase();
 			if (!groups[letter]) groups[letter] = [];
 			groups[letter].push(cat);
 		});
@@ -67,7 +74,7 @@ export function Header() {
 		return Object.keys(groups)
 			.sort()
 			.reduce<Record<string, Category[]>>((acc, letter) => {
-				acc[letter] = groups[letter].sort((a, b) => a.name.localeCompare(b.name));
+				acc[letter] = groups[letter].sort((a, b) => tLocal(a.name).localeCompare(tLocal(b.name)));
 				return acc;
 			}, {});
 	}, [categories, brandSearch, mobileSearch, open]);
@@ -106,12 +113,12 @@ export function Header() {
 					<Box
 						component="img"
 						src={logo}
-						alt="Soy Nature"
+						alt="Logo"
 						onClick={() => navigate("/")}
 						sx={{
-							borderRadius: 100,
-							padding: 2,
-							height: 120, // регулируй под дизайн
+							borderRadius: "50%",
+							p: 2,
+							height: 120,
 							cursor: "pointer",
 							objectFit: "contain",
 						}}
@@ -131,7 +138,7 @@ export function Header() {
 							</Button>
 						))}
 
-						{/* DESKTOP CATALOG */}
+						{/* CATALOG */}
 						<Select
 							displayEmpty
 							value={selectedBrand}
@@ -143,19 +150,7 @@ export function Header() {
 								borderRadius: "999px",
 								backgroundColor: "#fafafa",
 								boxShadow: "inset 0 0 0 1px rgba(0,0,0,0.08)",
-								"& .MuiSelect-select": {
-									display: "flex",
-									alignItems: "center",
-									fontSize: 14,
-									fontWeight: 500,
-									letterSpacing: "0.02em",
-								},
-								"& fieldset": {
-									border: "none",
-								},
-								"&:hover": {
-									backgroundColor: "#f3f3f3",
-								},
+								"& fieldset": { border: "none" },
 							}}
 							MenuProps={{
 								PaperProps: {
@@ -163,10 +158,7 @@ export function Header() {
 										mt: 1,
 										borderRadius: "16px",
 										maxHeight: 420,
-										boxShadow: `
-          0 20px 40px rgba(0,0,0,0.08),
-          inset 0 0 0 1px rgba(255,255,255,0.6)
-        `,
+										boxShadow: "0 20px 40px rgba(0,0,0,0.08)",
 									},
 								},
 							}}
@@ -198,17 +190,12 @@ export function Header() {
 												<SearchIcon fontSize="small" />
 											</InputAdornment>
 										),
-										sx: {
-											borderRadius: "999px",
-											backgroundColor: "#fafafa",
-										},
 									}}
 								/>
 							</Box>
 
 							{Object.entries(groupedCategories).map(([letter, items]) => (
-								<Box key={letter} sx={{ py: 0.5 }}>
-									{/* LETTER */}
+								<Box key={letter}>
 									<Typography
 										sx={{
 											px: 3,
@@ -223,45 +210,20 @@ export function Header() {
 										{letter}
 									</Typography>
 
-									{items.map((cat) => {
-										const selected = cat.slug === selectedBrand;
-
-										return (
-											<MenuItem
-												key={cat._id}
-												onClick={() => handleBrandSelect(cat.slug)}
-												sx={{
-													px: 3,
-													py: 1,
-													fontSize: 14,
-													borderRadius: "10px",
-													mx: 1,
-													my: 0.5,
-													transition: "0.15s",
-													backgroundColor: selected ? "rgba(0,0,0,0.04)" : "transparent",
-													fontWeight: selected ? 600 : 400,
-													"&:hover": {
-														backgroundColor: "rgba(0,0,0,0.06)",
-													},
-												}}
-											>
-												{cat.name}
-											</MenuItem>
-										);
-									})}
+									{items.map((cat) => (
+										<MenuItem
+											key={cat._id}
+											onClick={() => handleBrandSelect(cat.slug)}
+											sx={{ px: 3, py: 1 }}
+										>
+											{tLocal(cat.name)}
+										</MenuItem>
+									))}
 								</Box>
 							))}
 
 							{Object.keys(groupedCategories).length === 0 && (
-								<Typography
-									sx={{
-										px: 3,
-										py: 3,
-										textAlign: "center",
-										fontSize: 14,
-									}}
-									color="text.secondary"
-								>
+								<Typography sx={{ px: 3, py: 3, textAlign: "center" }} color="text.secondary">
 									{t("noResults")}
 								</Typography>
 							)}
@@ -273,12 +235,11 @@ export function Header() {
 						<LanguageMenu />
 
 						<IconButton onClick={() => navigate("/cart")}>
-							<Badge badgeContent={cartCount} color="primary" overlap="circular">
+							<Badge badgeContent={cartCount} color="primary">
 								<ShoppingCartOutlinedIcon />
 							</Badge>
 						</IconButton>
 
-						{/* BURGER BUTTON */}
 						<IconButton sx={{ display: { xs: "flex", md: "none" } }} onClick={() => setOpen(true)}>
 							☰
 						</IconButton>
@@ -288,14 +249,7 @@ export function Header() {
 
 			{/* ================= MOBILE DRAWER ================= */}
 			<Drawer open={open} onClose={() => setOpen(false)}>
-				<Box
-					sx={{
-						width: 300,
-						height: "100%",
-						display: "flex",
-						flexDirection: "column",
-					}}
-				>
+				<Box sx={{ width: 300, height: "100%", display: "flex", flexDirection: "column" }}>
 					<Box sx={{ px: 2, pt: 2 }}>
 						<Typography variant="h6" fontWeight={600}>
 							Menu
@@ -334,22 +288,12 @@ export function Header() {
 					<Box sx={{ flex: 1, overflowY: "auto", px: 1 }}>
 						{Object.entries(groupedCategories).map(([letter, items]) => (
 							<Box key={letter}>
-								<Typography
-									sx={{
-										px: 1.5,
-										pt: 2,
-										pb: 0.5,
-										fontWeight: 600,
-										color: "text.secondary",
-									}}
-								>
-									{letter}
-								</Typography>
+								<Typography sx={{ px: 1.5, pt: 2, fontWeight: 600 }}>{letter}</Typography>
 
 								{items.map((cat) => (
 									<ListItem key={cat._id} disablePadding>
 										<ListItemButton onClick={() => handleBrandSelect(cat.slug)}>
-											<ListItemText primary={cat.name} />
+											<ListItemText primary={tLocal(cat.name)} />
 										</ListItemButton>
 									</ListItem>
 								))}

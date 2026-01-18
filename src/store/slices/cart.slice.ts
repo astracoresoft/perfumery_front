@@ -1,5 +1,5 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import type { ProductVariant } from "@/types/productCard.type";
+import type { ProductVariant } from "@/types/product.type";
 
 export interface CartItem {
 	productId: string;
@@ -27,7 +27,7 @@ const cartSlice = createSlice({
 			const item = action.payload;
 
 			const existing = state.items.find(
-				(i) => i.productId === item.productId && i.variant.ml === item.variant.ml
+				(i) => i.productId === item.productId && i.variant.sku === item.variant.sku,
 			);
 
 			if (existing) {
@@ -37,15 +37,15 @@ const cartSlice = createSlice({
 			}
 		},
 
-		removeFromCart(state, action: PayloadAction<{ productId: string; ml: number }>) {
+		removeFromCart(state, action: PayloadAction<{ productId: string; sku: string }>) {
 			state.items = state.items.filter(
-				(i) => !(i.productId === action.payload.productId && i.variant.ml === action.payload.ml)
+				(i) => !(i.productId === action.payload.productId && i.variant.sku === action.payload.sku),
 			);
 		},
 
-		updateQty(state, action: PayloadAction<{ productId: string; ml: number; qty: number }>) {
+		updateQty(state, action: PayloadAction<{ productId: string; sku: string; qty: number }>) {
 			const item = state.items.find(
-				(i) => i.productId === action.payload.productId && i.variant.ml === action.payload.ml
+				(i) => i.productId === action.payload.productId && i.variant.sku === action.payload.sku,
 			);
 
 			if (item) {

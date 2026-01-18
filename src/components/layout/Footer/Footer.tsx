@@ -6,7 +6,11 @@ import TwitterIcon from "@mui/icons-material/Twitter";
 import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import PhoneOutlinedIcon from "@mui/icons-material/PhoneOutlined";
 
+import { useTranslation } from "react-i18next";
+
 export function Footer() {
+	const { t } = useTranslation();
+
 	return (
 		<Box
 			component="footer"
@@ -25,21 +29,21 @@ export function Footer() {
 					{/* BRAND */}
 					<Box maxWidth={360}>
 						<Typography variant="h6" fontWeight={700} gutterBottom>
-							Perfume Boutique
+							{t("footer.brandName")}
 						</Typography>
 
 						<Typography variant="body2" color="text.secondary" mb={2}>
-							Exclusive niche fragrances. Carefully selected. Delivered with care.
+							{t("footer.description")}
 						</Typography>
 
 						<Stack direction="row" spacing={1}>
-							<IconButton size="small">
+							<IconButton size="small" aria-label="Instagram">
 								<InstagramIcon />
 							</IconButton>
-							<IconButton size="small">
+							<IconButton size="small" aria-label="Facebook">
 								<FacebookIcon />
 							</IconButton>
-							<IconButton size="small">
+							<IconButton size="small" aria-label="Twitter">
 								<TwitterIcon />
 							</IconButton>
 						</Stack>
@@ -48,23 +52,22 @@ export function Footer() {
 					{/* NAVIGATION */}
 					<Stack spacing={1} minWidth={140}>
 						<Typography variant="subtitle1" fontWeight={600}>
-							Shop
+							{t("footer.shop")}
 						</Typography>
 
 						<Link href="/products" underline="hover" color="inherit">
-							All products
+							{t("footer.allProducts")}
 						</Link>
+
 						<Link href="/brands" underline="hover" color="inherit">
-							Brands
+							{t("footer.brands")}
 						</Link>
 					</Stack>
-
-					{/* SUPPORT */}
 
 					{/* CONTACT */}
 					<Stack spacing={1} minWidth={200}>
 						<Typography variant="subtitle1" fontWeight={600}>
-							Contact
+							{t("footer.contact")}
 						</Typography>
 
 						<Stack direction="row" spacing={1} alignItems="center">
@@ -89,7 +92,7 @@ export function Footer() {
 					alignItems={{ xs: "flex-start", md: "center" }}
 				>
 					<Typography variant="body2" color="text.secondary">
-						© {new Date().getFullYear()} Perfume Boutique. All rights reserved.
+						© {new Date().getFullYear()} {t("footer.brandName")}. {t("footer.rights")}.
 					</Typography>
 				</Stack>
 			</Container>

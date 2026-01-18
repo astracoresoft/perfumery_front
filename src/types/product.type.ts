@@ -1,23 +1,50 @@
+import type { LocalizedString, Price } from "./сommon.type";
+
+export interface ProductVariant {
+	name: LocalizedString;
+	price: Price;
+	sku: string;
+	stock: number;
+	isActive: boolean;
+}
+
+export interface ProductAttribute {
+	name: LocalizedString;
+	value: LocalizedString;
+	unit: string | null;
+}
+
+export interface ProductCustomFields {
+	gender?: string;
+	concentration?: string;
+	country?: string;
+	brand?: string;
+	[key: string]: string | undefined;
+}
+
 export interface Product {
 	_id: string;
 
-	name: string;
+	name: LocalizedString;
 	slug: string;
 
-	description: string;
-	shortDescription: string;
+	description: LocalizedString;
+	shortDescription: LocalizedString;
 
+	/**
+	 * Главная категория (ID Category)
+	 */
 	category: string | null;
+
+	/**
+	 * Дополнительные категории (ID Category[])
+	 */
 	categories: string[];
 
-	price: {
-		current: number;
-		old: number;
-		currency: string;
-	};
+	price: Price;
 
-	variants: never[]; // пока пусто — можно типизировать позже
-	attributes: never[]; // JSON array string → массив
+	variants: ProductVariant[];
+	attributes: ProductAttribute[];
 
 	sku: string;
 	stock: number;
@@ -33,13 +60,15 @@ export interface Product {
 	rating: number;
 	reviewsCount: number;
 
-	metaTitle: string | null;
-	metaDescription: string | null;
-	metaKeywords: string | null;
+	metaTitle: LocalizedString | null;
+	metaDescription: LocalizedString | null;
+	metaKeywords: LocalizedString | null;
 
-	images: string[]; // или { url: string }[], если бэк изменится
+	customFields: ProductCustomFields;
 
-	createdAt: string;
+	images: string[];
+
+	createdAt?: string; // иногда не приходит
 	updatedAt: string;
 
 	__v: number;

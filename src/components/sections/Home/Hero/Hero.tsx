@@ -1,6 +1,7 @@
 import { Box, Button, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+import img from "@/assets/images/testPerfume.png";
 
 export function Hero() {
 	const { t } = useTranslation();
@@ -69,7 +70,7 @@ export function Hero() {
 					<Typography
 						variant="h1"
 						sx={{
-							fontSize: { xs: "36px", md: "52px" },
+							fontSize: { xs: "20px", md: "30px" },
 							fontWeight: 600,
 							lineHeight: 1.15,
 							mb: 3,
@@ -88,7 +89,7 @@ export function Hero() {
 					>
 						{t(
 							"home.heroSubtitle",
-							"A curated selection of niche perfumes crafted to be felt, remembered, and unmistakably yours."
+							"A curated selection of niche perfumes crafted to be felt, remembered, and unmistakably yours.",
 						)}
 					</Typography>
 
@@ -119,7 +120,7 @@ export function Hero() {
 				>
 					<Box
 						component="img"
-						src="https://images.unsplash.com/photo-1600185365483-26d7a4cc7519"
+						src={img}
 						alt="Niche perfume bottle"
 						sx={{
 							width: "100%",

@@ -1,5 +1,13 @@
+import type { LocalizedString } from "./сommon.type";
+
 export interface ProductVariant {
-	ml: number;
-	price: number;
-	oldPrice?: number;
+	sku: string;
+	name: LocalizedString;
+	price: {
+		current: number;
+		old: number;
+		currency: string;
+	};
+	stock: number;
+	isActive: boolean;
 }

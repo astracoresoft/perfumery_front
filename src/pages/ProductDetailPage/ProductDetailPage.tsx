@@ -23,12 +23,16 @@ import { useDispatch } from "react-redux";
 
 import { getProductBySlug } from "@/api/product/product.api";
 import { addToCart } from "@/store/slices/cart.slice";
+
 import type { Product } from "@/types/product.type";
 import type { ProductVariant } from "@/types/productCard.type";
 
 import placeholderImg from "@/assets/images/testPerfume.png";
+import { tLocal } from "@/i18n/i18n";
+import { useTranslation } from "react-i18next";
 
 export function ProductDetailPage() {
+	useTranslation();
 	const { id: slug } = useParams<{ id: string }>();
 	const dispatch = useDispatch();
 	const theme = useTheme();
@@ -49,8 +53,7 @@ export function ProductDetailPage() {
 
 	const variants: ProductVariant[] = useMemo(() => {
 		if (!product) return [];
-		if (product.variants.length > 0) return product.variants as ProductVariant[];
-		return [{ ml: 50, price: product.price.current }];
+		return product.variants ?? [];
 	}, [product]);
 
 	useEffect(() => {
@@ -72,7 +75,7 @@ export function ProductDetailPage() {
 	return (
 		<Box maxWidth="1200px" mx="auto" px={{ xs: 2, md: 6 }} py={6}>
 			<Stack direction={isMobile ? "column" : "row"} spacing={6} alignItems="flex-start">
-				{/* IMAGE COLUMN */}
+				{/* IMAGE */}
 				<Box
 					flex={1}
 					sx={{
@@ -86,7 +89,7 @@ export function ProductDetailPage() {
 					<Box
 						component="img"
 						src={product.images?.[0] ?? placeholderImg}
-						alt={product.name}
+						alt={tLocal(product.name)}
 						sx={{
 							width: "100%",
 							maxWidth: 360,
@@ -95,10 +98,10 @@ export function ProductDetailPage() {
 					/>
 				</Box>
 
-				{/* INFO COLUMN */}
+				{/* INFO */}
 				<Box flex={1}>
 					<Typography variant="h4" fontWeight={700} mb={1}>
-						{product.name}
+						{tLocal(product.name)}
 					</Typography>
 
 					<Typography variant="caption" color="text.secondary">
@@ -117,32 +120,40 @@ export function ProductDetailPage() {
 
 					{/* PRICE */}
 					<Typography fontSize={28} fontWeight={800} color="primary" mb={3}>
-						{selectedVariant?.price} {product.price.currency}
+						{selectedVariant?.price.current} {selectedVariant?.price.currency}
 					</Typography>
 
 					{/* VARIANTS */}
-					<Typography fontWeight={600} mb={1}>
-						Volume
-					</Typography>
+					{variants.length > 0 && (
+						<>
+							<Typography fontWeight={600} mb={1}>
+								Variants
+							</Typography>
 
-					<Stack direction="row" spacing={1} mb={4}>
-						{variants.map((v) => (
-							<Chip
-								key={v.ml}
-								label={`${v.ml} ml`}
-								clickable
-								onClick={() => setSelectedVariant(v)}
-								sx={{
-									borderRadius: 2,
-									fontWeight: selectedVariant?.ml === v.ml ? 700 : 400,
-									bgcolor: selectedVariant?.ml === v.ml ? "primary.main" : "transparent",
-									color: selectedVariant?.ml === v.ml ? "white" : "text.primary",
-									border: "1px solid",
-									borderColor: selectedVariant?.ml === v.ml ? "primary.main" : "divider",
-								}}
-							/>
-						))}
-					</Stack>
+							<Stack direction="row" spacing={1} mb={4} flexWrap="wrap">
+								{variants.map((v) => {
+									const isSelected = selectedVariant?.sku === v.sku;
+
+									return (
+										<Chip
+											key={v.sku}
+											label={tLocal(v.name)}
+											clickable
+											onClick={() => setSelectedVariant(v)}
+											sx={{
+												borderRadius: 2,
+												fontWeight: isSelected ? 700 : 400,
+												bgcolor: isSelected ? "primary.main" : "transparent",
+												color: isSelected ? "white" : "text.primary",
+												border: "1px solid",
+												borderColor: isSelected ? "primary.main" : "divider",
+											}}
+										/>
+									);
+								})}
+							</Stack>
+						</>
+					)}
 
 					{/* QTY */}
 					<Stack direction="row" alignItems="center" spacing={2} mb={4}>
@@ -169,7 +180,7 @@ export function ProductDetailPage() {
 						</Stack>
 
 						<Typography variant="body2" color="text.secondary">
-							In stock: {product.stock}
+							In stock: {selectedVariant?.stock ?? product.stock}
 						</Typography>
 					</Stack>
 
@@ -189,14 +200,14 @@ export function ProductDetailPage() {
 							selectedVariant &&
 							dispatch(
 								addToCart({
-									productId: product.slug,
-									title: product.name,
+									productId: product._id,
+									title: tLocal(product.name),
 									image: product.images?.[0] ?? placeholderImg,
 									variant: selectedVariant,
 									qty,
-									price: selectedVariant.price,
-									currency: product.price.currency,
-								})
+									price: selectedVariant.price.current,
+									currency: selectedVariant.price.currency,
+								}),
 							)
 						}
 					>
@@ -205,7 +216,7 @@ export function ProductDetailPage() {
 
 					{/* DESCRIPTION */}
 					<Typography variant="body2" color="text.secondary" mb={4}>
-						{product.description}
+						{tLocal(product.description)}
 					</Typography>
 
 					<Divider sx={{ my: 3 }} />

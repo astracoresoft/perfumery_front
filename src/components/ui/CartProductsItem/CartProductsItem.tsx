@@ -2,12 +2,14 @@ import { Box, Stack, Typography, IconButton, useTheme, useMediaQuery } from "@mu
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+
 import type { CartItem } from "@/store/slices/cart.slice";
+import { tLocal } from "@/i18n/i18n";
 
 interface CartProductItemProps {
 	item: CartItem;
-	onQtyChange: (productId: string, ml: number, qty: number) => void;
-	onRemove: (productId: string, ml: number) => void;
+	onQtyChange: (productId: string, sku: string, qty: number) => void;
+	onRemove: (productId: string, sku: string) => void;
 }
 
 const CartProductItem = ({ item, onQtyChange, onRemove }: CartProductItemProps) => {
@@ -48,7 +50,7 @@ const CartProductItem = ({ item, onQtyChange, onRemove }: CartProductItemProps) 
 					</Typography>
 
 					<Typography variant="body2" color="text.secondary">
-						{item.variant.ml} ml
+						{tLocal(item.variant.name)}
 					</Typography>
 
 					<Typography variant="body2">
@@ -56,7 +58,7 @@ const CartProductItem = ({ item, onQtyChange, onRemove }: CartProductItemProps) 
 					</Typography>
 				</Stack>
 
-				{/* RIGHT SIDE */}
+				{/* RIGHT */}
 				<Stack
 					direction={isMobile ? "row" : "column"}
 					alignItems="center"
@@ -78,7 +80,7 @@ const CartProductItem = ({ item, onQtyChange, onRemove }: CartProductItemProps) 
 						<IconButton
 							size="small"
 							disabled={item.qty <= 1}
-							onClick={() => onQtyChange(item.productId, item.variant.ml, item.qty - 1)}
+							onClick={() => onQtyChange(item.productId, item.variant.sku, item.qty - 1)}
 						>
 							<RemoveIcon fontSize="small" />
 						</IconButton>
@@ -87,7 +89,7 @@ const CartProductItem = ({ item, onQtyChange, onRemove }: CartProductItemProps) 
 
 						<IconButton
 							size="small"
-							onClick={() => onQtyChange(item.productId, item.variant.ml, item.qty + 1)}
+							onClick={() => onQtyChange(item.productId, item.variant.sku, item.qty + 1)}
 						>
 							<AddIcon fontSize="small" />
 						</IconButton>
@@ -99,7 +101,7 @@ const CartProductItem = ({ item, onQtyChange, onRemove }: CartProductItemProps) 
 					</Typography>
 
 					{/* REMOVE */}
-					<IconButton color="error" onClick={() => onRemove(item.productId, item.variant.ml)}>
+					<IconButton color="error" onClick={() => onRemove(item.productId, item.variant.sku)}>
 						<DeleteOutlineIcon />
 					</IconButton>
 				</Stack>

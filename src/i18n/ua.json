@@ -6,8 +6,36 @@
     "blog": "Статті"
   },
   "home": {
-    "heroTitle": "Соєві свічки ручної роботи",
-    "heroSubtitle": "Неймовірні аромати створять розслаблюючу атмосферу",
+    "heroTitle": "Нішеві та брендові парфуми",
+    "heroSubtitle": "Аромати, що розкривають індивідуальність і залишають слід у пам’яті",
     "catalogButton": "Переглянути каталог"
+  },
+  "common": {
+    "inStock": "В наявності",
+    "outOfStock": "Немає в наявності",
+    "addToCart": "Додати в кошик",
+    "details": "Детальніше",
+    "cart": "Кошик",
+    "checkout": "Оформити замовлення",
+    "total": "Разом"
+  },
+  "filters": {
+    "sortNameAsc": "Назва A → Z",
+    "sortNameDesc": "Назва Z → A",
+    "sortPriceAsc": "Ціна ↑",
+    "sortPriceDesc": "Ціна ↓",
+    "brands": "Бренди",
+    "price": "Ціна",
+    "inStock": "В наявності",
+    "noProducts": "Товари не знайдено"
+  },
+  "footer": {
+    "brandName": "Perfume Boutique",
+    "description": "Ексклюзивні нішеві аромати. Ретельно відібрані. Дбайливо доставлені.",
+    "shop": "Магазин",
+    "allProducts": "Усі товари",
+    "brands": "Бренди",
+    "contact": "Контакти",
+    "rights": "Усі права захищені"
   }
 }

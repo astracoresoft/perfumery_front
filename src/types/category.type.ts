@@ -1,24 +1,27 @@
+import type { LocalizedString } from "./сommon.type";
+
 export interface Category {
 	_id: string;
-	name: string;
+
+	name: LocalizedString;
 	slug: string;
 
-	parent: string | null;
-	parentCategories: Category[];
+	parent: string | null; // ID родительской категории
+	parentCategories: Category[]; // populated, если приходит
 
 	order: number;
 	isActive: boolean;
 
-	description: string | null;
+	description: LocalizedString | null;
 	image: string | null;
 	icon: string | null;
 
-	metaTitle: string | null;
-	metaDescription: string | null;
-	metaKeywords: string | null;
+	metaTitle: LocalizedString | null;
+	metaDescription: LocalizedString | null;
+	metaKeywords: LocalizedString | null;
 
-	createdAt: string; // ISO date
-	updatedAt: string; // ISO date
+	createdAt: string; // ISO
+	updatedAt: string; // ISO
 
 	__v: number;
 }

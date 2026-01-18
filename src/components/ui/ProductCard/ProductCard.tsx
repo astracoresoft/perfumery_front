@@ -4,21 +4,21 @@ import {
 	CardContent,
 	CardMedia,
 	Typography,
-	Box,
 	Button,
 	Chip,
 	Stack,
 	ToggleButton,
 	ToggleButtonGroup,
 } from "@mui/material";
-import type { ProductVariant } from "@/types/productCard.type";
+
+import type { ProductVariant } from "@/types/product.type";
+import { tLocal } from "@/i18n/i18n";
+import { useTranslation } from "react-i18next";
 
 export interface ProductCardProps {
 	id: string;
 	title: string;
-	description: string;
 	image: string;
-	category?: string;
 	inStock?: boolean;
 	variants: ProductVariant[];
 	currency: string;
@@ -30,84 +30,57 @@ export interface ProductCardProps {
 export const ProductCard: React.FC<ProductCardProps> = ({
 	id,
 	title,
-	description,
 	image,
-	category,
-	currency,
 	inStock = true,
 	variants,
 	onAddToCart,
 	onViewDetails,
 }) => {
-	const [selectedMl, setSelectedMl] = React.useState<number>(variants[0].ml);
-
-	const selectedVariant = variants.find((v) => v.ml === selectedMl)!;
+	const { t } = useTranslation();
+	const [selectedSku, setSelectedSku] = React.useState<string>(variants[0]?.sku);
+	const selectedVariant = variants.find((v) => v.sku === selectedSku)!;
 
 	return (
-		<Card
-			sx={{
-				width: "100%",
-				borderRadius: 3,
-				boxShadow: 3,
-				transition: "0.3s",
-				"&:hover": {
-					boxShadow: 6,
-					transform: "translateY(-4px)",
-				},
-			}}
-		>
-			<CardMedia component="img" height="200" image={image} alt={title} sx={{ objectFit: "contain" }} />
+		<Card sx={{ width: "100%", borderRadius: 3 }}>
+			<CardMedia component="img" image={image} alt={title} />
 
 			<CardContent>
 				<Stack direction="row" spacing={1} mb={1}>
-					{category && <Chip label={category} size="small" />}
 					<Chip
-						label={inStock ? "In stock" : "Out of stock"}
+						label={inStock ? t("common.inStock") : t("common.outOfStock")}
 						size="small"
 						color={inStock ? "success" : "error"}
 					/>
 				</Stack>
 
-				<Typography variant="h6" fontWeight={600} gutterBottom>
+				<Typography variant="h6" fontWeight={600}>
 					{title}
-				</Typography>
-
-				<Typography variant="body2" color="text.secondary" mb={2}>
-					{description}
 				</Typography>
 
 				<ToggleButtonGroup
 					exclusive
 					size="small"
-					value={selectedMl}
-					onChange={(_, value) => value && setSelectedMl(value)}
-					sx={{ mb: 2 }}
+					value={selectedSku}
+					onChange={(_, v) => v && setSelectedSku(v)}
+					sx={{ mt: 2, mb: 2 }}
 				>
 					{variants.map((v) => (
-						<ToggleButton key={v.ml} value={v.ml}>
-							{v.ml} ml
+						<ToggleButton key={v.sku} value={v.sku}>
+							{tLocal(v.name)}
 						</ToggleButton>
 					))}
 				</ToggleButtonGroup>
 
-				<Box mb={2}>
-					<Typography variant="h6" fontWeight={700}>
-						{selectedVariant.price} {currency}
-					</Typography>
-				</Box>
+				<Typography variant="h6" fontWeight={700} mb={2}>
+					{selectedVariant.price.current} {selectedVariant.price.currency}
+				</Typography>
 
 				<Stack direction="row" spacing={1}>
-					<Button
-						variant="contained"
-						fullWidth
-						disabled={!inStock}
-						onClick={() => onAddToCart(selectedVariant)}
-					>
-						Add to cart
+					<Button variant="contained" fullWidth onClick={() => onAddToCart(selectedVariant)}>
+						{t("common.addToCart")}
 					</Button>
-
 					<Button variant="outlined" fullWidth onClick={() => onViewDetails(id)}>
-						Details
+						{t("common.details")}
 					</Button>
 				</Stack>
 			</CardContent>

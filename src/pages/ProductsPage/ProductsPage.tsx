@@ -42,5 +42,5 @@ export function ProductsPage() {
 
 	/* ================= RENDER ================= */
 
-	return <ProductsSection categories={categories} />;
+	return <ProductsSection />;
 }

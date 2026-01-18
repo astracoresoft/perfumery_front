@@ -24,7 +24,7 @@ export function LanguageMenu() {
 
 			<Menu anchorEl={anchor} open={Boolean(anchor)} onClose={handleClose}>
 				<MenuItem onClick={() => changeLang("ru")}>RU</MenuItem>
-				<MenuItem onClick={() => changeLang("uk")}>UA</MenuItem>
+				<MenuItem onClick={() => changeLang("ua")}>UA</MenuItem>
 			</Menu>
 		</>
 	);

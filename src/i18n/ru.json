@@ -6,8 +6,36 @@
     "blog": "Статьи"
   },
   "home": {
-    "heroTitle": "Соевые свечи ручной работы",
-    "heroSubtitle": "Невероятные ароматы помогут создать расслабляющую атмосферу",
+    "heroTitle": "Нишевые и брендовые парфюмы",
+    "heroSubtitle": "Ароматы, которые раскрывают индивидуальность и оставляют след в памяти",
     "catalogButton": "Смотреть каталог"
+  },
+  "common": {
+    "inStock": "В наличии",
+    "outOfStock": "Нет в наличии",
+    "addToCart": "В корзину",
+    "details": "Подробнее",
+    "cart": "Корзина",
+    "checkout": "Оформить заказ",
+    "total": "Итого"
+  },
+  "filters": {
+    "sortNameAsc": "Название A → Z",
+    "sortNameDesc": "Название Z → A",
+    "sortPriceAsc": "Цена ↑",
+    "sortPriceDesc": "Цена ↓",
+    "brands": "Бренды",
+    "price": "Цена",
+    "inStock": "В наличии",
+    "noProducts": "Товары не найдены"
+  },
+  "footer": {
+    "brandName": "Perfume Boutique",
+    "description": "Эксклюзивные нишевые ароматы. Тщательно отобранные. С заботой доставленные.",
+    "shop": "Магазин",
+    "allProducts": "Все товары",
+    "brands": "Бренды",
+    "contact": "Контакты",
+    "rights": "Все права защищены"
   }
 }
