@@ -16,7 +16,8 @@ import { tLocal } from "@/i18n/i18n";
 import { useTranslation } from "react-i18next";
 
 export interface ProductCardProps {
-	id: string;
+	id: string; // _id
+	slug: string; // ✅ slug
 	title: string;
 	image: string;
 	inStock?: boolean;
@@ -24,11 +25,11 @@ export interface ProductCardProps {
 	currency: string;
 
 	onAddToCart: (variant: ProductVariant) => void;
-	onViewDetails: (id: string) => void;
+	onViewDetails: (slug: string) => void; // ✅ slug
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({
-	id,
+	slug,
 	title,
 	image,
 	inStock = true,
@@ -37,6 +38,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 	onViewDetails,
 }) => {
 	const { t } = useTranslation();
+
 	const [selectedSku, setSelectedSku] = React.useState<string>(variants[0]?.sku);
 	const selectedVariant = variants.find((v) => v.sku === selectedSku)!;
 
@@ -62,7 +64,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 					size="small"
 					value={selectedSku}
 					onChange={(_, v) => v && setSelectedSku(v)}
-					sx={{ mt: 2, mb: 2 }}
+					sx={{ mt: 2, mb: 2, flexWrap: "wrap" }}
 				>
 					{variants.map((v) => (
 						<ToggleButton key={v.sku} value={v.sku}>
@@ -79,7 +81,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 					<Button variant="contained" fullWidth onClick={() => onAddToCart(selectedVariant)}>
 						{t("common.addToCart")}
 					</Button>
-					<Button variant="outlined" fullWidth onClick={() => onViewDetails(id)}>
+					<Button variant="outlined" fullWidth onClick={() => onViewDetails(slug)}>
 						{t("common.details")}
 					</Button>
 				</Stack>

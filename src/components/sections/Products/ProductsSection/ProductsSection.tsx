@@ -5,6 +5,7 @@ import {
 	CircularProgress,
 	Typography,
 	FormControl,
+	InputLabel,
 	Select,
 	MenuItem,
 	Checkbox,
@@ -13,15 +14,14 @@ import {
 	TextField,
 	Pagination,
 	Slider,
-	Chip,
 	Stack,
+	Chip,
 } from "@mui/material";
 
 import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
 import CheckBoxIcon from "@mui/icons-material/CheckBox";
 import SortIcon from "@mui/icons-material/Sort";
-import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
-import EuroOutlinedIcon from "@mui/icons-material/EuroOutlined";
+// import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
 
 import { useNavigate, useSearchParams, useParams } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
@@ -45,9 +45,14 @@ type SortOption = "price_asc" | "price_desc" | "name_asc" | "name_desc";
 const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
 const checkedIcon = <CheckBoxIcon fontSize="small" />;
 
+const parseCSV = (v: string | null) =>
+	(v ?? "")
+		.split(",")
+		.map((s) => s.trim())
+		.filter(Boolean);
+
 export function ProductsSection() {
 	const { t } = useTranslation();
-
 	const navigate = useNavigate();
 	const dispatch = useDispatch();
 	const { slug } = useParams<{ slug?: string }>();
@@ -64,48 +69,77 @@ export function ProductsSection() {
 	const getParam = (key: string, fallback: string) => searchParams.get(key) ?? fallback;
 
 	const [sort, setSort] = useState<SortOption>(getParam("sort", "name_asc") as SortOption);
+
+	// ✅ default 8
+	const [itemsPerPage, setItemsPerPage] = useState<number>(Number(getParam("limit", "8")));
+	const [page, setPage] = useState<number>(Number(getParam("page", "1")));
+
+	// ✅ brand ids
 	const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 	const [inStockOnly, setInStockOnly] = useState(getParam("stock", "0") === "1");
-	const [page, setPage] = useState(Number(getParam("page", "1")));
-
-	// ✅ ITEMS PER PAGE
-	const [itemsPerPage, setItemsPerPage] = useState<number>(Number(getParam("limit", "12")));
 
 	const [priceBounds, setPriceBounds] = useState<[number, number]>([0, 0]);
 	const [priceRange, setPriceRange] = useState<[number, number]>([0, 0]);
 
-	/* ================= LOAD PRODUCTS ================= */
+	/* ================= LOAD DATA ================= */
 
 	useEffect(() => {
-		getProducts().then((res) => {
-			const data = res.data.data as Product[];
-			setProducts(data);
+		let alive = true;
 
-			const prices = data.map((p) => p.price.current);
-			setPriceBounds([Math.min(...prices), Math.max(...prices)]);
-			setPriceRange([Math.min(...prices), Math.max(...prices)]);
+		Promise.all([getProducts(), getCategories(true)])
+			.then(([prodRes, catRes]) => {
+				if (!alive) return;
 
-			setLoading(false);
-		});
+				const data = prodRes.data.data as Product[];
+				setProducts(data);
+
+				const cats = catRes.data.data as Category[];
+				setCategories(cats);
+
+				if (data.length) {
+					const prices = data.map((p) => p.price.current);
+					const min = Math.min(...prices);
+					const max = Math.max(...prices);
+					setPriceBounds([min, max]);
+
+					// если в URL нет min/max — выставляем дефолт
+					const urlMin = searchParams.get("min");
+					const urlMax = searchParams.get("max");
+					setPriceRange([urlMin ? Number(urlMin) : min, urlMax ? Number(urlMax) : max]);
+				}
+
+				setLoading(false);
+			})
+			.catch(() => setLoading(false));
+
+		return () => {
+			alive = false;
+		};
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
-	/* ================= LOAD CATEGORIES ================= */
+	/* ================= INIT FROM URL (brands query) ================= */
 
 	useEffect(() => {
-		getCategories(true).then((res) => {
-			setCategories(res.data.data);
-		});
+		// если пользователь открыл /products?brands=...
+		const brands = parseCSV(searchParams.get("brands"));
+		if (brands.length) setSelectedCategories(brands);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
-	/* ================= APPLY BRAND FROM URL ================= */
+	/* ================= APPLY BRAND FROM /brand/:slug ================= */
 
 	useEffect(() => {
 		if (!slug || !categories.length) return;
 
-		const category = categories.find((c) => c.slug === slug);
+		const cat = categories.find((c) => c.slug === slug);
 
-		if (category) {
-			setSelectedCategories([category._id]);
+		if (cat) {
+			setSelectedCategories([cat._id]);
+			setPage(1);
+		} else {
+			// slug есть, но такой категории нет
+			setSelectedCategories([]);
 			setPage(1);
 		}
 	}, [slug, categories]);
@@ -121,15 +155,41 @@ export function ProductsSection() {
 
 		if (selectedCategories.length) params.brands = selectedCategories.join(",");
 		if (inStockOnly) params.stock = "1";
-		if (priceRange[0] !== priceBounds[0]) params.min = String(priceRange[0]);
-		if (priceRange[1] !== priceBounds[1]) params.max = String(priceRange[1]);
+
+		if (priceBounds[0] !== 0 || priceBounds[1] !== 0) {
+			if (priceRange[0] !== priceBounds[0]) params.min = String(priceRange[0]);
+			if (priceRange[1] !== priceBounds[1]) params.max = String(priceRange[1]);
+		}
 
 		setSearchParams(params, { replace: true });
 	}, [sort, page, itemsPerPage, selectedCategories, inStockOnly, priceRange, priceBounds, setSearchParams]);
 
 	useEffect(() => {
 		setPage(1);
-	}, [sort, selectedCategories, inStockOnly, priceRange, itemsPerPage]);
+	}, [sort, itemsPerPage, selectedCategories, inStockOnly, priceRange]);
+
+	/* ================= HELPERS: category id extraction ================= */
+
+	const getCategoryIdsFromProduct = (p: any): string[] => {
+		const ids: string[] = [];
+
+		// p.category может быть string или object
+		if (p?.category) {
+			if (typeof p.category === "string") ids.push(p.category);
+			else if (typeof p.category === "object" && p.category._id) ids.push(p.category._id);
+		}
+
+		// p.categories может быть string[] или object[]
+		if (Array.isArray(p?.categories)) {
+			for (const c of p.categories) {
+				if (typeof c === "string") ids.push(c);
+				else if (typeof c === "object" && c?._id) ids.push(c._id);
+			}
+		}
+
+		// убираем дубликаты
+		return Array.from(new Set(ids));
+	};
 
 	/* ================= FILTER ================= */
 
@@ -137,19 +197,21 @@ export function ProductsSection() {
 		let result = [...products];
 
 		if (selectedCategories.length) {
-			result = result.filter(
-				(p) =>
-					p.categories?.some((id) => selectedCategories.includes(id)) ||
-					selectedCategories.includes(p.category as any),
-			);
+			result = result.filter((p: any) => {
+				const ids = getCategoryIdsFromProduct(p);
+				return ids.some((id) => selectedCategories.includes(id));
+			});
 		}
 
-		if (inStockOnly) {
-			result = result.filter((p) => p.stock > 0);
+		if (inStockOnly) result = result.filter((p) => p.stock > 0);
+
+		// price guard
+		if (priceBounds[0] !== 0 || priceBounds[1] !== 0) {
+			result = result.filter((p) => p.price.current >= priceRange[0] && p.price.current <= priceRange[1]);
 		}
 
-		return result.filter((p) => p.price.current >= priceRange[0] && p.price.current <= priceRange[1]);
-	}, [products, selectedCategories, inStockOnly, priceRange]);
+		return result;
+	}, [products, selectedCategories, inStockOnly, priceRange, priceBounds]);
 
 	/* ================= SORT ================= */
 
@@ -170,12 +232,13 @@ export function ProductsSection() {
 
 	/* ================= PAGINATION ================= */
 
-	const totalPages = Math.ceil(sortedProducts.length / itemsPerPage);
+	const totalPages = Math.max(1, Math.ceil(sortedProducts.length / itemsPerPage));
 
 	const paginatedProducts = useMemo(() => {
-		const start = (page - 1) * itemsPerPage;
+		const safePage = Math.min(page, totalPages);
+		const start = (safePage - 1) * itemsPerPage;
 		return sortedProducts.slice(start, start + itemsPerPage);
-	}, [page, sortedProducts, itemsPerPage]);
+	}, [page, sortedProducts, itemsPerPage, totalPages]);
 
 	/* ================= STATES ================= */
 
@@ -187,9 +250,9 @@ export function ProductsSection() {
 		);
 	}
 
-	if (!paginatedProducts.length) {
+	if (!sortedProducts.length) {
 		return (
-			<Box py={10} textAlign="center">
+			<Box py={10} mt={10} textAlign="center">
 				<Typography variant="h6">{t("filters.noProducts")}</Typography>
 			</Box>
 		);
@@ -201,9 +264,8 @@ export function ProductsSection() {
 		<Box px={{ xs: 2, md: 6 }} py={4}>
 			{/* FILTER BAR */}
 			<Box mb={4} p={3} borderRadius={3} bgcolor="background.paper" boxShadow={1}>
-				<Stack direction={{ xs: "column", md: "row" }} spacing={3} alignItems="center">
-					{/* SORT */}
-					<FormControl size="small" sx={{ minWidth: 220 }}>
+				<Stack direction={{ xs: "column", lg: "row" }} spacing={2}>
+					<FormControl size="small" fullWidth>
 						<Select
 							value={sort}
 							onChange={(e) => setSort(e.target.value as SortOption)}
@@ -216,23 +278,21 @@ export function ProductsSection() {
 						</Select>
 					</FormControl>
 
-					{/* ITEMS PER PAGE */}
-					<FormControl size="small" sx={{ minWidth: 160 }}>
+					<FormControl size="small" fullWidth>
+						<InputLabel>{t("filters.perPage")}</InputLabel>
 						<Select
 							value={itemsPerPage}
-							onChange={(e) => {
-								setItemsPerPage(Number(e.target.value));
-								setPage(1);
-							}}
+							label={t("filters.perPage")}
+							onChange={(e) => setItemsPerPage(Number(e.target.value))}
 						>
-							<MenuItem value={8}>8</MenuItem>
-							<MenuItem value={12}>12</MenuItem>
-							<MenuItem value={24}>24</MenuItem>
-							<MenuItem value={48}>48</MenuItem>
+							{[8, 12, 24, 48].map((n) => (
+								<MenuItem key={n} value={n}>
+									{n}
+								</MenuItem>
+							))}
 						</Select>
 					</FormControl>
 
-					{/* BRANDS */}
 					<Autocomplete
 						multiple
 						options={categories}
@@ -242,46 +302,37 @@ export function ProductsSection() {
 						onChange={(_, values) => setSelectedCategories(values.map((v) => v._id))}
 						renderOption={(props, option, { selected }) => (
 							<li {...props} key={option._id}>
-								<Checkbox icon={icon} checkedIcon={checkedIcon} checked={selected} sx={{ mr: 1 }} />
+								<Checkbox icon={icon} checkedIcon={checkedIcon} checked={selected} />
 								{tLocal(option.name)}
 							</li>
 						)}
 						renderInput={(params) => <TextField {...params} size="small" label={t("filters.brands")} />}
-						sx={{ minWidth: 280 }}
+						fullWidth
 					/>
 
-					{/* PRICE */}
-					<Box sx={{ minWidth: 260 }}>
-						<Stack direction="row" spacing={1} alignItems="center" mb={1}>
-							<EuroOutlinedIcon fontSize="small" />
-							<Typography variant="body2">
-								{t("filters.price")}: {priceRange[0]} – {priceRange[1]}
-							</Typography>
-						</Stack>
-
+					<Box width="100%">
+						<Typography variant="body2" mb={0.5}>
+							{t("filters.price")}: {priceRange[0]} – {priceRange[1]}
+						</Typography>
 						<Slider
 							value={priceRange}
 							onChange={(_, v) => setPriceRange(v as [number, number])}
 							min={priceBounds[0]}
 							max={priceBounds[1]}
-							valueLabelDisplay="auto"
-							disableSwap
 						/>
 					</Box>
 
-					{/* IN STOCK */}
-					<Stack direction="row" spacing={1} alignItems="center">
-						<Inventory2OutlinedIcon fontSize="small" />
-						<FormControlLabel
-							control={
-								<Checkbox checked={inStockOnly} onChange={(e) => setInStockOnly(e.target.checked)} />
-							}
-							label={t("filters.inStock")}
-						/>
-					</Stack>
+					<FormControlLabel
+						control={<Checkbox checked={inStockOnly} onChange={(e) => setInStockOnly(e.target.checked)} />}
+						label={
+							<Stack direction="row" spacing={1} alignItems="center">
+								<Typography variant="body2">{t("filters.inStock")}</Typography>
+							</Stack>
+						}
+					/>
 				</Stack>
 
-				{/* ACTIVE FILTERS */}
+				{/* ACTIVE */}
 				{(selectedCategories.length > 0 || inStockOnly) && (
 					<Stack direction="row" spacing={1} mt={2} flexWrap="wrap">
 						{selectedCategories.map((id) => {
@@ -292,7 +343,7 @@ export function ProductsSection() {
 								<Chip
 									key={id}
 									label={tLocal(cat.name)}
-									onDelete={() => setSelectedCategories((prev) => prev.filter((c) => c !== id))}
+									onDelete={() => setSelectedCategories((prev) => prev.filter((x) => x !== id))}
 								/>
 							);
 						})}
@@ -302,25 +353,19 @@ export function ProductsSection() {
 				)}
 			</Box>
 
-			{/* GRID */}
-			<Box
-				sx={{
-					display: "flex",
-					flexWrap: "wrap",
-					gap: 4,
-					...productsFlexLayout,
-				}}
-			>
+			{/* PRODUCTS */}
+			<Box sx={{ display: "flex", flexWrap: "wrap", gap: 4, ...productsFlexLayout }}>
 				{paginatedProducts.map((product) => (
 					<ProductCard
 						key={product._id}
 						id={product._id}
+						slug={product.slug}
 						title={tLocal(product.name)}
 						image={product.images?.[0] ?? img}
 						inStock={product.stock > 0}
 						variants={product.variants}
 						currency={product.price.currency}
-						onViewDetails={() => navigate(`/products/${product.slug}`)}
+						onViewDetails={(slug) => navigate(`/products/${slug}`)}
 						onAddToCart={(variant) =>
 							dispatch(
 								addToCart({

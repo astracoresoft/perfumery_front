@@ -24,8 +24,8 @@ const CartSection = () => {
 			<Divider />
 
 			{items.length === 0 ? (
-				<Typography align="center" mt={6}>
-					{t("common.emptyCart", "Корзина пуста")}
+				<Typography align="center" mt={6} mb={6}>
+					{t("checkout.emptyCart", "Корзина пуста")}
 				</Typography>
 			) : (
 				items.map((item) => (

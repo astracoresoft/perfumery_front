@@ -27,7 +27,8 @@
     "brands": "Бренды",
     "price": "Цена",
     "inStock": "В наличии",
-    "noProducts": "Товары не найдены"
+    "noProducts": "Товары не найдены",
+    "perPage": "Количество товаров на странице"
   },
   "footer": {
     "brandName": "Perfume Boutique",
@@ -37,5 +38,20 @@
     "brands": "Бренды",
     "contact": "Контакты",
     "rights": "Все права защищены"
+  },
+  "checkout": {
+    "title": "Оформление заказа",
+    "deliveryDetails": "Данные для доставки",
+    "fullName": "ФИО",
+    "phone": "Телефон",
+    "email": "Email",
+    "city": "Город",
+    "address": "Адрес",
+    "comment": "Комментарий",
+    "confirmOrder": "Подтвердить заказ",
+    "orderSummary": "Ваш заказ",
+    "total": "Итого",
+    "emptyCart": "Корзина Пустая"
   }
+
 }

@@ -27,7 +27,8 @@
     "brands": "Бренди",
     "price": "Ціна",
     "inStock": "В наявності",
-    "noProducts": "Товари не знайдено"
+    "noProducts": "Товари не знайдено",
+    "perPage": "Кількість товарів на сторінці"
   },
   "footer": {
     "brandName": "Perfume Boutique",
@@ -37,5 +38,20 @@
     "brands": "Бренди",
     "contact": "Контакти",
     "rights": "Усі права захищені"
+  },
+  "checkout": {
+    "title": "Оформлення замовлення",
+    "deliveryDetails": "Дані для доставки",
+    "fullName": "ПІБ",
+    "phone": "Телефон",
+    "email": "Email",
+    "city": "Місто",
+    "address": "Адреса",
+    "comment": "Коментар",
+    "confirmOrder": "Підтвердити замовлення",
+    "orderSummary": "Ваше замовлення",
+    "total": "Разом",
+    "emptyCart": "Кошик Пустий"
   }
+
 }
