@@ -61,7 +61,9 @@ export function Header() {
 	const groupedCategories = useMemo(() => {
 		const searchValue = (open ? mobileSearch : brandSearch).toLowerCase();
 
-		const filtered = categories.filter((cat) => tLocal(cat.name).toLowerCase().includes(searchValue));
+		const filtered = (Array.isArray(categories) ? categories : []).filter((cat) =>
+			tLocal(cat.name).toLowerCase().includes(searchValue),
+		);
 
 		const groups: Record<string, Category[]> = {};
 
