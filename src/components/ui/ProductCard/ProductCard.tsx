@@ -9,6 +9,7 @@ import {
 	Stack,
 	ToggleButton,
 	ToggleButtonGroup,
+	Box,
 } from "@mui/material";
 
 import type { ProductVariant } from "@/types/product.type";
@@ -44,7 +45,31 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
 	return (
 		<Card sx={{ width: "100%", borderRadius: 3 }}>
-			<CardMedia component="img" image={image} alt={title} />
+			<Box
+				sx={{
+					margin: "auto",
+					width: 200, // размер контейнера
+					height: 200,
+					display: "flex",
+					alignItems: "center",
+					justifyContent: "center",
+					backgroundColor: "rgba(255,255,255,0.04)", // опционально
+					borderRadius: 2, // опционально
+					overflow: "hidden",
+				}}
+			>
+				<CardMedia
+					component="img"
+					image={image}
+					alt={title}
+					sx={{
+						width: "100%",
+						height: "100%",
+						objectFit: "contain", // всегда помещается без искажений
+						padding: 1, // опционально, чтоб были поля
+					}}
+				/>
+			</Box>
 
 			<CardContent>
 				<Stack direction="row" spacing={1} mb={1}>

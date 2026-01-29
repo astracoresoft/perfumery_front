@@ -258,6 +258,13 @@ export function ProductsSection() {
 		);
 	}
 
+	const API_ORIGIN = import.meta.env.VITE_API_BASE_URL.replace(/\/api\/?$/, "");
+
+	const toImageUrl = (url?: string | null) => {
+		if (!url) return "";
+		if (url.startsWith("http")) return url; // уже абсолютная
+		return `${API_ORIGIN}${url}`; // относительная -> абсолютная
+	};
 	/* ================= RENDER ================= */
 
 	return (
@@ -361,7 +368,7 @@ export function ProductsSection() {
 						id={product._id}
 						slug={product.slug}
 						title={tLocal(product.name)}
-						image={product.images?.[0] ?? img}
+						image={toImageUrl(product.images?.[0]?.url) || img}
 						inStock={product.stock > 0}
 						variants={product.variants}
 						currency={product.price.currency}
@@ -371,7 +378,7 @@ export function ProductsSection() {
 								addToCart({
 									productId: product._id,
 									title: tLocal(product.name),
-									image: product.images?.[0] ?? img,
+									image: toImageUrl(product.images?.[0]?.url) || img,
 									variant,
 									qty: 1,
 									price: variant.price.current,

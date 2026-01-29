@@ -8,6 +8,13 @@ export interface ProductVariant {
 	isActive: boolean;
 }
 
+export interface ImageVariant {
+	url: string;
+	alt: string | null;
+	order: number;
+	isMain: boolean;
+}
+
 export interface ProductAttribute {
 	name: LocalizedString;
 	value: LocalizedString;
@@ -66,7 +73,7 @@ export interface Product {
 
 	customFields: ProductCustomFields;
 
-	images: string[];
+	images: ImageVariant[];
 
 	createdAt?: string; // иногда не приходит
 	updatedAt: string;
