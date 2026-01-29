@@ -11,6 +11,7 @@ import {
 	Chip,
 	useTheme,
 	useMediaQuery,
+	CardMedia,
 } from "@mui/material";
 import { useParams, useNavigate } from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
@@ -95,6 +96,14 @@ export function ProductDetailPage() {
 		);
 	}
 
+	const API_ORIGIN = import.meta.env.VITE_API_BASE_URL.replace(/\/api\/?$/, "");
+
+	const toImageUrl = (url?: string | null) => {
+		if (!url) return "";
+		if (url.startsWith("http")) return url; // уже абсолютная
+		return `${API_ORIGIN}${url}`; // относительная -> абсолютная
+	};
+
 	return (
 		<Box maxWidth="1200px" mx="auto" px={{ xs: 2, md: 6 }} py={6}>
 			<Stack direction={isMobile ? "column" : "row"} spacing={6} alignItems="flex-start">
@@ -110,15 +119,29 @@ export function ProductDetailPage() {
 					}}
 				>
 					<Box
-						component="img"
-						src={product.images?.[0] ?? placeholderImg}
-						alt={tLocal(product.name)}
 						sx={{
-							width: "100%",
-							maxWidth: 360,
-							objectFit: "contain",
+							margin: "auto",
+							width: "100%", // размер контейнера
+							height: "100%",
+							display: "flex",
+							alignItems: "center",
+							justifyContent: "center",
+							backgroundColor: "rgba(255,255,255,0.04)", // опционально
+							borderRadius: 2, // опционально
+							overflow: "hidden",
 						}}
-					/>
+					>
+						<CardMedia
+							component="img"
+							image={toImageUrl(product.images?.[0]?.url) || placeholderImg}
+							sx={{
+								width: "100%",
+								height: "100%",
+								objectFit: "contain", // всегда помещается без искажений
+								padding: 1, // опционально, чтоб были поля
+							}}
+						/>
+					</Box>
 				</Box>
 
 				{/* INFO */}
@@ -208,7 +231,7 @@ export function ProductDetailPage() {
 								addToCart({
 									productId: product._id,
 									title: tLocal(product.name),
-									image: product.images?.[0] ?? placeholderImg,
+									image: toImageUrl(product.images?.[0]?.url) || placeholderImg,
 									variant: selectedVariant,
 									qty,
 									price: selectedVariant.price.current,

@@ -1,9 +1,9 @@
-import type { ProductVariant } from "./product.type";
+import type { ImageVariant, ProductVariant } from "./product.type";
 
 export interface CartItem {
 	productId: string;
 	title: string;
-	image: string;
+	image: ImageVariant[];
 
 	variant: ProductVariant;
 

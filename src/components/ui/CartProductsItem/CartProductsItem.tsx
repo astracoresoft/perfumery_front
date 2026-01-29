@@ -1,4 +1,4 @@
-import { Box, Stack, Typography, IconButton, useTheme, useMediaQuery } from "@mui/material";
+import { Box, Stack, Typography, IconButton, useTheme, useMediaQuery, CardMedia } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
@@ -18,6 +18,8 @@ const CartProductItem = ({ item, onQtyChange, onRemove }: CartProductItemProps) 
 
 	const total = item.price * item.qty;
 
+	console.log(item);
+
 	return (
 		<Box
 			sx={{
@@ -31,17 +33,29 @@ const CartProductItem = ({ item, onQtyChange, onRemove }: CartProductItemProps) 
 			<Stack direction={isMobile ? "column" : "row"} spacing={2} alignItems={isMobile ? "stretch" : "center"}>
 				{/* IMAGE */}
 				<Box
-					component="img"
-					src={item.image}
-					alt={item.title}
 					sx={{
-						width: isMobile ? "100%" : 110,
-						height: isMobile ? 200 : 110,
-						objectFit: "cover",
-						borderRadius: 2,
-						flexShrink: 0,
+						margin: "auto",
+						width: 200, // размер контейнера
+						height: 200,
+						display: "flex",
+						alignItems: "center",
+						justifyContent: "center",
+						backgroundColor: "rgba(255,255,255,0.04)", // опционально
+						borderRadius: 2, // опционально
+						overflow: "hidden",
 					}}
-				/>
+				>
+					<CardMedia
+						component="img"
+						image={item.image}
+						sx={{
+							width: "100%",
+							height: "100%",
+							objectFit: "contain", // всегда помещается без искажений
+							padding: 1, // опционально, чтоб были поля
+						}}
+					/>
+				</Box>
 
 				{/* INFO */}
 				<Stack spacing={0.5} flex={1}>

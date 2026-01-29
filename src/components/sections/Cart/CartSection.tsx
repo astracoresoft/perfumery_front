@@ -17,7 +17,7 @@ const CartSection = () => {
 
 	return (
 		<Box maxWidth="1200px" mx="auto" p={{ xs: 2, md: 6 }}>
-			<Typography variant="h4" align="center" mb={4}>
+			<Typography variant="h4" align="center" justifyContent={"center"} mb={4}>
 				{t("common.cart")}
 			</Typography>
 
