@@ -64,7 +64,7 @@ const CartProductItem = ({ item, onQtyChange, onRemove }: CartProductItemProps) 
 					</Typography>
 
 					<Typography variant="body2" color="text.secondary">
-						{tLocal(item.variant.name)}
+						{tLocal(item.variant.name)} МЛ
 					</Typography>
 
 					<Typography variant="body2">

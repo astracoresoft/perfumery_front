@@ -6,6 +6,7 @@ export interface ProductVariant {
 	sku: string;
 	stock: number;
 	isActive: boolean;
+	image: string;
 }
 
 export interface ImageVariant {

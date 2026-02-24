@@ -40,6 +40,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 }) => {
 	const { t } = useTranslation();
 
+	const API_ORIGIN = import.meta.env.VITE_API_BASE_URL.replace(/\/api\/?$/, "");
+
+	const toImageUrl = (url?: string | null) => {
+		if (!url) return "";
+		if (url.startsWith("http")) return url; // уже абсолютная
+		return `${API_ORIGIN}${url}`; // относительная -> абсолютная
+	};
+
 	const [selectedSku, setSelectedSku] = React.useState<string>(variants[0]?.sku);
 	const selectedVariant = variants.find((v) => v.sku === selectedSku)!;
 
@@ -48,7 +56,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 			<Box
 				sx={{
 					margin: "auto",
-					width: 200, // размер контейнера
+					width: 300, // размер контейнера
 					height: 200,
 					display: "flex",
 					alignItems: "center",
@@ -89,13 +97,129 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 					size="small"
 					value={selectedSku}
 					onChange={(_, v) => v && setSelectedSku(v)}
-					sx={{ mt: 2, mb: 2, flexWrap: "wrap" }}
+					sx={{
+						mt: 2,
+						mb: 2,
+						border: 0,
+						display: "flex",
+						justifyContent: "center",
+					}}
 				>
-					{variants.map((v) => (
-						<ToggleButton key={v.sku} value={v.sku}>
-							{tLocal(v.name)}
-						</ToggleButton>
-					))}
+					<Box sx={{ display: "flex", flexDirection: "column", gap: 2, width: "100%" }}>
+						<Box sx={{ display: "flex", gap: 1, justifyContent: "center", flexWrap: "nowrap" }}>
+							{variants
+								.filter((v) => ["5", "10", "20"].includes(tLocal(v.name).trim()))
+								.map((v) => {
+									const label = tLocal(v.name).trim();
+									const isSelected = selectedSku === v.sku;
+
+									return (
+										<Box
+											key={v.sku}
+											sx={{
+												display: "flex",
+												flexDirection: "column",
+												alignItems: "center",
+											}}
+										>
+											<Box
+												sx={{
+													width: 80,
+													height: 80,
+													display: "flex",
+													alignItems: "center",
+													justifyContent: "center",
+													overflow: "hidden",
+													border: "1px solid",
+													borderColor: isSelected ? "primary.main" : "rgba(25,118,210,0.35)", // ✅ синеватая рамка
+													borderBottom: 0,
+													bgcolor: isSelected ? "rgba(25,118,210,0.08)" : "transparent",
+												}}
+											>
+												<Box
+													component="img"
+													src={toImageUrl(v.image)}
+													alt=""
+													sx={{
+														width: "100%",
+														height: "100%",
+														objectFit: "contain",
+														p: 1,
+													}}
+												/>
+											</Box>
+
+											<ToggleButton
+												value={v.sku}
+												sx={{
+													minWidth: 80,
+													height: 44,
+													textTransform: "none",
+													borderTopLeftRadius: 0,
+													borderTopRightRadius: 0,
+													borderBottomLeftRadius: 8,
+													borderBottomRightRadius: 8,
+
+													// ✅ синеватая рамка/цвета
+													border: "1px solid rgba(25,118,210,0.35)",
+													color: "primary.main",
+
+													// ✅ selected
+													"&.Mui-selected": {
+														bgcolor: "primary.main",
+														color: "white",
+														borderColor: "primary.main",
+													},
+													"&.Mui-selected:hover": {
+														bgcolor: "primary.dark",
+													},
+												}}
+											>
+												{label} МЛ
+											</ToggleButton>
+										</Box>
+									);
+								})}
+						</Box>
+
+						{/* BOTTOM ROW */}
+						<Box sx={{ display: "flex", gap: 1, justifyContent: "center", flexWrap: "nowrap" }}>
+							{variants
+								.filter((v) => !["5", "10", "20"].includes(tLocal(v.name).trim()))
+								.map((v) => {
+									const label = tLocal(v.name).trim();
+
+									return (
+										<ToggleButton
+											key={v.sku}
+											value={v.sku}
+											sx={{
+												minWidth: 80,
+												height: 44,
+												textTransform: "none",
+												borderRadius: 8,
+
+												// ✅ синеватая рамка/цвета
+												border: "1px solid rgba(25,118,210,0.35)",
+												color: "primary.main",
+
+												// ✅ selected
+												"&.Mui-selected": {
+													bgcolor: "primary.main",
+													color: "white",
+													borderColor: "primary.main",
+												},
+												"&.Mui-selected:hover": {
+													bgcolor: "primary.dark",
+												},
+											}}
+										>
+											{label} МЛ
+										</ToggleButton>
+									);
+								})}
+						</Box>
+					</Box>
 				</ToggleButtonGroup>
 
 				<Typography variant="h6" fontWeight={700} mb={2}>

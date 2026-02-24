@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/set-state-in-effect */
 /* eslint-disable react-hooks/preserve-manual-memoization */
 import {
@@ -8,7 +9,6 @@ import {
 	Button,
 	Divider,
 	IconButton,
-	Chip,
 	useTheme,
 	useMediaQuery,
 	CardMedia,
@@ -173,28 +173,109 @@ export function ProductDetailPage() {
 								{t("product.variants", "Варианты")}
 							</Typography>
 
-							<Stack direction="row" spacing={1} mb={4} flexWrap="wrap">
-								{variants.map((v) => {
-									const isSelected = selectedVariant?.sku === v.sku;
+							{/* ✅ как в карточке: 5/10/20 сверху с картинкой, остальные ниже по центру */}
+							<Box sx={{ mb: 4 }}>
+								<Box sx={{ display: "flex", flexDirection: "column", gap: 2, width: "100%" }}>
+									{/* TOP ROW */}
+									<Box sx={{ display: "flex", gap: 1, justifyContent: "center", flexWrap: "nowrap" }}>
+										{variants
+											.filter((v) => ["5", "10", "20"].includes(tLocal(v.name).trim()))
+											.map((v) => {
+												const label = tLocal(v.name).trim();
+												const isSelected = selectedVariant?.sku === v.sku;
 
-									return (
-										<Chip
-											key={v.sku}
-											label={tLocal(v.name)}
-											clickable
-											onClick={() => setSelectedVariant(v)}
-											sx={{
-												borderRadius: 2,
-												fontWeight: isSelected ? 700 : 400,
-												bgcolor: isSelected ? "primary.main" : "transparent",
-												color: isSelected ? "white" : "text.primary",
-												border: "1px solid",
-												borderColor: isSelected ? "primary.main" : "divider",
-											}}
-										/>
-									);
-								})}
-							</Stack>
+												return (
+													<Box
+														key={v.sku}
+														sx={{
+															display: "flex",
+															flexDirection: "column",
+															alignItems: "center",
+														}}
+													>
+														<Box
+															sx={{
+																width: 80,
+																height: 80,
+																display: "flex",
+																alignItems: "center",
+																justifyContent: "center",
+																overflow: "hidden",
+																border: "1px solid",
+																borderColor: isSelected
+																	? "primary.main"
+																	: "rgba(0,0,0,0.12)",
+																borderBottom: 0,
+																bgcolor: isSelected
+																	? "rgba(25,118,210,0.06)"
+																	: "transparent",
+																cursor: "pointer",
+															}}
+															onClick={() => setSelectedVariant(v)}
+														>
+															<Box
+																component="img"
+																src={toImageUrl((v as any).image)}
+																alt=""
+																sx={{
+																	width: "100%",
+																	height: "100%",
+																	objectFit: "contain",
+																	p: 1,
+																}}
+															/>
+														</Box>
+
+														<Button
+															variant={isSelected ? "contained" : "outlined"}
+															onClick={() => setSelectedVariant(v)}
+															sx={{
+																minWidth: 80,
+																height: 44,
+																p: 0,
+																borderTopLeftRadius: 0,
+																borderTopRightRadius: 0,
+																borderBottomLeftRadius: 8,
+																borderBottomRightRadius: 8,
+																fontWeight: isSelected ? 700 : 400,
+																textTransform: "none",
+															}}
+														>
+															{label} МЛ
+														</Button>
+													</Box>
+												);
+											})}
+									</Box>
+
+									{/* BOTTOM ROW */}
+									<Box sx={{ display: "flex", gap: 1, justifyContent: "center", flexWrap: "nowrap" }}>
+										{variants
+											.filter((v) => !["5", "10", "20"].includes(tLocal(v.name).trim()))
+											.map((v) => {
+												const label = tLocal(v.name).trim();
+												const isSelected = selectedVariant?.sku === v.sku;
+
+												return (
+													<Button
+														key={v.sku}
+														variant={isSelected ? "contained" : "outlined"}
+														onClick={() => setSelectedVariant(v)}
+														sx={{
+															minWidth: 80,
+															height: 44,
+															borderRadius: 8,
+															fontWeight: isSelected ? 700 : 400,
+															textTransform: "none",
+														}}
+													>
+														{label} МЛ
+													</Button>
+												);
+											})}
+									</Box>
+								</Box>
+							</Box>
 						</>
 					)}
 
@@ -232,7 +313,10 @@ export function ProductDetailPage() {
 									productId: product._id,
 									title: tLocal(product.name),
 									image: toImageUrl(product.images?.[0]?.url) || placeholderImg,
-									variant: selectedVariant,
+									variant: {
+										...selectedVariant,
+										image: (selectedVariant as any).image ?? product.images?.[0]?.url ?? "",
+									},
 									qty,
 									price: selectedVariant.price.current,
 									currency: selectedVariant.price.currency,
