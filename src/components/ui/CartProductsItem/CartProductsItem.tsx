@@ -1,125 +1,72 @@
-import { Box, Stack, Typography, IconButton, useTheme, useMediaQuery, CardMedia } from "@mui/material";
+import { Box, Typography, IconButton, Stack } from "@mui/material";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-
 import type { CartItem } from "@/store/slices/cart.slice";
-import { tLocal } from "@/i18n/i18n";
 
 interface CartProductItemProps {
 	item: CartItem;
-	onQtyChange: (productId: string, sku: string, qty: number) => void;
-	onRemove: (productId: string, sku: string) => void;
+	onQtyChange: (productId: string, variantName: string, qty: number) => void;
+	onRemove: (productId: string, variantName: string) => void;
 }
 
+const API_ORIGIN = import.meta.env.VITE_API_BASE_URL.replace(/\/api\/?$/, "");
+
+const toImageUrl = (url?: string | null) => {
+	if (!url) return "";
+	if (url.startsWith("http")) return url;
+	return `${API_ORIGIN}${url}`;
+};
+
 const CartProductItem = ({ item, onQtyChange, onRemove }: CartProductItemProps) => {
-	const theme = useTheme();
-	const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-
-	const total = item.price * item.qty;
-
-	console.log(item);
+	const variantName = item.variant.name.ua.trim();
 
 	return (
-		<Box
-			sx={{
-				bgcolor: "background.paper",
-				borderRadius: 3,
-				boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
-				p: 2,
-				mb: 3,
-			}}
-		>
-			<Stack direction={isMobile ? "column" : "row"} spacing={2} alignItems={isMobile ? "stretch" : "center"}>
-				{/* IMAGE */}
-				<Box
-					sx={{
-						margin: "auto",
-						width: 200, // размер контейнера
-						height: 200,
-						display: "flex",
-						alignItems: "center",
-						justifyContent: "center",
-						backgroundColor: "rgba(255,255,255,0.04)", // опционально
-						borderRadius: 2, // опционально
-						overflow: "hidden",
-					}}
+		<Box py={3} display="flex" gap={2} alignItems="center">
+			<Box
+				component="img"
+				src={toImageUrl(item.variant.image || item.image)}
+				alt={item.title}
+				sx={{
+					width: 90,
+					height: 90,
+					objectFit: "contain",
+					borderRadius: 2,
+					bgcolor: "#fafafa",
+					p: 1,
+				}}
+			/>
+
+			<Box flex={1}>
+				<Typography fontWeight={700}>{item.title}</Typography>
+				<Typography variant="body2" color="text.secondary">
+					{variantName} МЛ
+				</Typography>
+				<Typography fontWeight={600}>
+					{item.price} {item.currency}
+				</Typography>
+			</Box>
+
+			<Stack direction="row" alignItems="center" spacing={1}>
+				<IconButton
+					onClick={() => onQtyChange(item.productId, variantName, item.qty - 1)}
+					disabled={item.qty <= 1}
 				>
-					<CardMedia
-						component="img"
-						image={item.image}
-						sx={{
-							width: "100%",
-							height: "100%",
-							objectFit: "contain", // всегда помещается без искажений
-							padding: 1, // опционально, чтоб были поля
-						}}
-					/>
-				</Box>
+					<RemoveIcon />
+				</IconButton>
 
-				{/* INFO */}
-				<Stack spacing={0.5} flex={1}>
-					<Typography fontWeight={600} fontSize={16}>
-						{item.title}
-					</Typography>
+				<Typography minWidth={24} textAlign="center">
+					{item.qty}
+				</Typography>
 
-					<Typography variant="body2" color="text.secondary">
-						{tLocal(item.variant.name)} МЛ
-					</Typography>
-
-					<Typography variant="body2">
-						{item.price} {item.currency}
-					</Typography>
-				</Stack>
-
-				{/* RIGHT */}
-				<Stack
-					direction={isMobile ? "row" : "column"}
-					alignItems="center"
-					justifyContent="space-between"
-					spacing={isMobile ? 2 : 1}
-				>
-					{/* QTY */}
-					<Stack
-						direction="row"
-						alignItems="center"
-						spacing={1}
-						sx={{
-							bgcolor: "#f5f5f5",
-							borderRadius: 999,
-							px: 1.5,
-							py: 0.5,
-						}}
-					>
-						<IconButton
-							size="small"
-							disabled={item.qty <= 1}
-							onClick={() => onQtyChange(item.productId, item.variant.sku, item.qty - 1)}
-						>
-							<RemoveIcon fontSize="small" />
-						</IconButton>
-
-						<Typography fontWeight={600}>{item.qty}</Typography>
-
-						<IconButton
-							size="small"
-							onClick={() => onQtyChange(item.productId, item.variant.sku, item.qty + 1)}
-						>
-							<AddIcon fontSize="small" />
-						</IconButton>
-					</Stack>
-
-					{/* TOTAL */}
-					<Typography fontWeight={700} fontSize={18} color="primary">
-						{total} {item.currency}
-					</Typography>
-
-					{/* REMOVE */}
-					<IconButton color="error" onClick={() => onRemove(item.productId, item.variant.sku)}>
-						<DeleteOutlineIcon />
-					</IconButton>
-				</Stack>
+				<IconButton onClick={() => onQtyChange(item.productId, variantName, item.qty + 1)}>
+					<AddIcon />
+				</IconButton>
 			</Stack>
+
+			<IconButton onClick={() => onRemove(item.productId, variantName)}>
+				<DeleteOutlineIcon />
+			</IconButton>
 		</Box>
 	);
 };

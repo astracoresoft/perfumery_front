@@ -13,7 +13,7 @@ import {
 } from "@mui/material";
 
 import type { ProductVariant } from "@/types/product.type";
-import { tLocal } from "@/i18n/i18n";
+// import { tLocal } from "@/i18n/i18n";
 import { useTranslation } from "react-i18next";
 
 export interface ProductCardProps {
@@ -26,7 +26,7 @@ export interface ProductCardProps {
 	currency: string;
 
 	onAddToCart: (variant: ProductVariant) => void;
-	onViewDetails: (slug: string) => void; // ✅ slug
+	onViewDetails: (slug: string) => void;
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({
@@ -44,12 +44,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
 	const toImageUrl = (url?: string | null) => {
 		if (!url) return "";
-		if (url.startsWith("http")) return url; // уже абсолютная
-		return `${API_ORIGIN}${url}`; // относительная -> абсолютная
+		if (url.startsWith("http")) return url;
+		return `${API_ORIGIN}${url}`;
 	};
 
-	const [selectedSku, setSelectedSku] = React.useState<string>(variants[0]?.sku);
-	const selectedVariant = variants.find((v) => v.sku === selectedSku)!;
+	const [selectedVariantName, setSelectedVariantName] = React.useState("");
+	const selectedVariant = variants.find((v) => v.name.ua.trim() === selectedVariantName);
 
 	return (
 		<Card sx={{ width: "100%", borderRadius: 3 }}>
@@ -95,8 +95,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 				<ToggleButtonGroup
 					exclusive
 					size="small"
-					value={selectedSku}
-					onChange={(_, v) => v && setSelectedSku(v)}
+					value={selectedVariantName}
+					onChange={(_, v) => v && setSelectedVariantName(v)}
 					sx={{
 						mt: 2,
 						mb: 2,
@@ -108,18 +108,20 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 					<Box sx={{ display: "flex", flexDirection: "column", gap: 2, width: "100%" }}>
 						<Box sx={{ display: "flex", gap: 1, justifyContent: "center", flexWrap: "nowrap" }}>
 							{variants
-								.filter((v) => ["5", "10", "20"].includes(tLocal(v.name).trim()))
+								.filter((v) => ["5", "10", "20"].includes(v.name.ua.trim()))
 								.map((v) => {
-									const label = tLocal(v.name).trim();
-									const isSelected = selectedSku === v.sku;
+									const label = v.name.ua.trim();
+									const isSelected = selectedVariantName === label;
+									const isDisabled = !v.isActive;
 
 									return (
 										<Box
-											key={v.sku}
+											key={`${v.name.ua}-${v.image}`}
 											sx={{
 												display: "flex",
 												flexDirection: "column",
 												alignItems: "center",
+												opacity: isDisabled ? 0.5 : 1,
 											}}
 										>
 											<Box
@@ -131,9 +133,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 													justifyContent: "center",
 													overflow: "hidden",
 													border: "1px solid",
-													borderColor: isSelected ? "primary.main" : "rgba(25,118,210,0.35)", // ✅ синеватая рамка
+													borderColor: isSelected ? "primary.main" : "rgba(25,118,210,0.35)",
 													borderBottom: 0,
 													bgcolor: isSelected ? "rgba(25,118,210,0.08)" : "transparent",
+													cursor: isDisabled ? "not-allowed" : "pointer",
+													pointerEvents: isDisabled ? "none" : "auto",
 												}}
 											>
 												<Box
@@ -145,12 +149,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 														height: "100%",
 														objectFit: "contain",
 														p: 1,
+														filter: isDisabled ? "grayscale(1)" : "none",
 													}}
 												/>
 											</Box>
 
 											<ToggleButton
-												value={v.sku}
+												value={label}
+												disabled={isDisabled}
 												sx={{
 													minWidth: 80,
 													height: 44,
@@ -159,12 +165,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 													borderTopRightRadius: 0,
 													borderBottomLeftRadius: 8,
 													borderBottomRightRadius: 8,
-
-													// ✅ синеватая рамка/цвета
 													border: "1px solid rgba(25,118,210,0.35)",
 													color: "primary.main",
-
-													// ✅ selected
 													"&.Mui-selected": {
 														bgcolor: "primary.main",
 														color: "white",
@@ -182,28 +184,26 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 								})}
 						</Box>
 
-						{/* BOTTOM ROW */}
 						<Box sx={{ display: "flex", gap: 1, justifyContent: "center", flexWrap: "nowrap" }}>
 							{variants
-								.filter((v) => !["5", "10", "20"].includes(tLocal(v.name).trim()))
+								.filter((v) => !["5", "10", "20"].includes(v.name.ua.trim()))
 								.map((v) => {
-									const label = tLocal(v.name).trim();
+									const label = v.name.ua.trim();
+									const isDisabled = !v.isActive;
 
 									return (
 										<ToggleButton
-											key={v.sku}
-											value={v.sku}
+											key={`${v.name.ua}-${v.image}`}
+											value={label}
+											disabled={isDisabled}
 											sx={{
 												minWidth: 80,
 												height: 44,
 												textTransform: "none",
 												borderRadius: 8,
-
-												// ✅ синеватая рамка/цвета
 												border: "1px solid rgba(25,118,210,0.35)",
 												color: "primary.main",
-
-												// ✅ selected
+												opacity: isDisabled ? 0.5 : 1,
 												"&.Mui-selected": {
 													bgcolor: "primary.main",
 													color: "white",
@@ -223,11 +223,18 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 				</ToggleButtonGroup>
 
 				<Typography variant="h6" fontWeight={700} mb={2}>
-					{selectedVariant.price.current} {selectedVariant.price.currency}
+					{selectedVariant?.price.current} {selectedVariant?.price.currency}
 				</Typography>
 
 				<Stack direction="row" spacing={1}>
-					<Button variant="contained" fullWidth onClick={() => onAddToCart(selectedVariant)}>
+					<Button
+						variant="contained"
+						fullWidth
+						disabled={!selectedVariant}
+						onClick={() => {
+							if (selectedVariant) onAddToCart(selectedVariant);
+						}}
+					>
 						{t("common.addToCart")}
 					</Button>
 					<Button variant="outlined" fullWidth onClick={() => onViewDetails(slug)}>

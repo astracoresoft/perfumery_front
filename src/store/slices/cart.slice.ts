@@ -27,7 +27,7 @@ const cartSlice = createSlice({
 			const item = action.payload;
 
 			const existing = state.items.find(
-				(i) => i.productId === item.productId && i.variant.sku === item.variant.sku,
+				(i) => i.productId === item.productId && i.variant.name.ua.trim() === item.variant.name.ua.trim(),
 			);
 
 			if (existing) {
@@ -37,15 +37,21 @@ const cartSlice = createSlice({
 			}
 		},
 
-		removeFromCart(state, action: PayloadAction<{ productId: string; sku: string }>) {
+		removeFromCart(state, action: PayloadAction<{ productId: string; variantName: string }>) {
 			state.items = state.items.filter(
-				(i) => !(i.productId === action.payload.productId && i.variant.sku === action.payload.sku),
+				(i) =>
+					!(
+						i.productId === action.payload.productId &&
+						i.variant.name.ua.trim() === action.payload.variantName.trim()
+					),
 			);
 		},
 
-		updateQty(state, action: PayloadAction<{ productId: string; sku: string; qty: number }>) {
+		updateQty(state, action: PayloadAction<{ productId: string; variantName: string; qty: number }>) {
 			const item = state.items.find(
-				(i) => i.productId === action.payload.productId && i.variant.sku === action.payload.sku,
+				(i) =>
+					i.productId === action.payload.productId &&
+					i.variant.name.ua.trim() === action.payload.variantName.trim(),
 			);
 
 			if (item) {

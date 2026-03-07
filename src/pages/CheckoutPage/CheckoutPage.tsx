@@ -55,7 +55,6 @@ export function CheckoutPage() {
 					</Button>
 				</Box>
 
-				{/* ================= SUMMARY ================= */}
 				<Box
 					flex={1}
 					sx={{
@@ -92,7 +91,7 @@ export function CheckoutPage() {
 										</Typography>
 
 										<Stack direction="row" justifyContent="space-between" alignItems="center">
-											<Chip size="small" label={tLocal(item.variant.name)} />
+											<Chip size="small" label={`${tLocal(item.variant.name)} МЛ`} />
 
 											<Typography variant="body2" color="text.secondary">
 												× {item.qty}
@@ -115,7 +114,7 @@ export function CheckoutPage() {
 							</Typography>
 
 							<Typography fontWeight={800} fontSize={20} color="primary">
-								{total} {currency}
+								{total.toFixed(2)} {currency}
 							</Typography>
 						</Stack>
 					</Paper>

@@ -9,7 +9,6 @@ import {
 	Select,
 	MenuItem,
 	Checkbox,
-	FormControlLabel,
 	Autocomplete,
 	TextField,
 	Pagination,
@@ -63,6 +62,9 @@ export function ProductsSection() {
 	const [products, setProducts] = useState<Product[]>([]);
 	const [categories, setCategories] = useState<Category[]>([]);
 	const [loading, setLoading] = useState(true);
+
+	console.log(products);
+	console.log(categories);
 
 	/* ================= FILTER STATE ================= */
 
@@ -329,14 +331,14 @@ export function ProductsSection() {
 						/>
 					</Box>
 
-					<FormControlLabel
+					{/* <FormControlLabel
 						control={<Checkbox checked={inStockOnly} onChange={(e) => setInStockOnly(e.target.checked)} />}
 						label={
 							<Stack direction="row" spacing={1} alignItems="center">
 								<Typography variant="body2">{t("filters.inStock")}</Typography>
 							</Stack>
 						}
-					/>
+					/> */}
 				</Stack>
 
 				{/* ACTIVE */}

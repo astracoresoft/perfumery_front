@@ -17,8 +17,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import StarIcon from "@mui/icons-material/Star";
-import ShareIcon from "@mui/icons-material/Share";
-import MailOutlineIcon from "@mui/icons-material/MailOutline";
+// import ShareIcon from "@mui/icons-material/Share";
+// import MailOutlineIcon from "@mui/icons-material/MailOutline";
 import { useEffect, useMemo, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useTranslation } from "react-i18next";
@@ -34,7 +34,7 @@ import { tLocal } from "@/i18n/i18n";
 
 export function ProductDetailPage() {
 	const { t } = useTranslation();
-	const { id } = useParams<{ id?: string }>(); // может прийти slug или id
+	const { id } = useParams<{ id?: string }>();
 	const navigate = useNavigate();
 	const dispatch = useDispatch();
 	const theme = useTheme();
@@ -53,8 +53,6 @@ export function ProductDetailPage() {
 		setLoading(true);
 		setNotFound(false);
 
-		// ✅ тут важно: мы ожидаем, что id = slug
-		// поэтому мы починили ProductCard чтобы он вёл по slug
 		getProductBySlug(id)
 			.then((res) => {
 				setProduct(res.data.data);
@@ -69,7 +67,10 @@ export function ProductDetailPage() {
 	const variants: ProductVariant[] = useMemo(() => product?.variants ?? [], [product]);
 
 	useEffect(() => {
-		if (variants.length > 0) setSelectedVariant(variants[0]);
+		if (variants.length > 0) {
+			const firstActiveVariant = variants.find((v) => v.isActive) ?? variants[0];
+			setSelectedVariant(firstActiveVariant);
+		}
 	}, [variants]);
 
 	if (loading) {
@@ -100,14 +101,13 @@ export function ProductDetailPage() {
 
 	const toImageUrl = (url?: string | null) => {
 		if (!url) return "";
-		if (url.startsWith("http")) return url; // уже абсолютная
-		return `${API_ORIGIN}${url}`; // относительная -> абсолютная
+		if (url.startsWith("http")) return url;
+		return `${API_ORIGIN}${url}`;
 	};
 
 	return (
 		<Box maxWidth="1200px" mx="auto" px={{ xs: 2, md: 6 }} py={6}>
 			<Stack direction={isMobile ? "column" : "row"} spacing={6} alignItems="flex-start">
-				{/* IMAGE */}
 				<Box
 					flex={1}
 					sx={{
@@ -121,13 +121,13 @@ export function ProductDetailPage() {
 					<Box
 						sx={{
 							margin: "auto",
-							width: "100%", // размер контейнера
+							width: "100%",
 							height: "100%",
 							display: "flex",
 							alignItems: "center",
 							justifyContent: "center",
-							backgroundColor: "rgba(255,255,255,0.04)", // опционально
-							borderRadius: 2, // опционально
+							backgroundColor: "rgba(255,255,255,0.04)",
+							borderRadius: 2,
 							overflow: "hidden",
 						}}
 					>
@@ -137,14 +137,13 @@ export function ProductDetailPage() {
 							sx={{
 								width: "100%",
 								height: "100%",
-								objectFit: "contain", // всегда помещается без искажений
-								padding: 1, // опционально, чтоб были поля
+								objectFit: "contain",
+								padding: 1,
 							}}
 						/>
 					</Box>
 				</Box>
 
-				{/* INFO */}
 				<Box flex={1}>
 					<Typography variant="h4" fontWeight={700} mb={1}>
 						{tLocal(product.name)}
@@ -168,115 +167,120 @@ export function ProductDetailPage() {
 					</Typography>
 
 					{variants.length > 0 && (
-						<>
-							<Typography fontWeight={600} mb={1}>
-								{t("product.variants", "Варианты")}
-							</Typography>
+						<Box sx={{ mb: 4 }}>
+							<Box sx={{ display: "flex", flexDirection: "column", gap: 2, width: "100%" }}>
+								<Box sx={{ display: "flex", gap: 1, justifyContent: "center", flexWrap: "nowrap" }}>
+									{variants
+										.filter((v) => ["5", "10", "20"].includes(v.name.ua.trim()))
+										.map((v) => {
+											const label = v.name.ua.trim();
+											const isSelected = selectedVariant?.name.ua.trim() === label;
+											const isDisabled = !v.isActive;
 
-							{/* ✅ как в карточке: 5/10/20 сверху с картинкой, остальные ниже по центру */}
-							<Box sx={{ mb: 4 }}>
-								<Box sx={{ display: "flex", flexDirection: "column", gap: 2, width: "100%" }}>
-									{/* TOP ROW */}
-									<Box sx={{ display: "flex", gap: 1, justifyContent: "center", flexWrap: "nowrap" }}>
-										{variants
-											.filter((v) => ["5", "10", "20"].includes(tLocal(v.name).trim()))
-											.map((v) => {
-												const label = tLocal(v.name).trim();
-												const isSelected = selectedVariant?.sku === v.sku;
-
-												return (
+											return (
+												<Box
+													key={v.name.ua}
+													sx={{
+														display: "flex",
+														flexDirection: "column",
+														alignItems: "center",
+														opacity: isDisabled ? 0.5 : 1,
+													}}
+												>
 													<Box
-														key={v.sku}
 														sx={{
+															width: 80,
+															height: 80,
 															display: "flex",
-															flexDirection: "column",
 															alignItems: "center",
+															justifyContent: "center",
+															overflow: "hidden",
+															border: "1px solid",
+															borderColor: isSelected
+																? "primary.main"
+																: "rgba(0,0,0,0.12)",
+															borderBottom: 0,
+															bgcolor: isSelected
+																? "rgba(25,118,210,0.06)"
+																: "transparent",
+															cursor: isDisabled ? "not-allowed" : "pointer",
+															pointerEvents: isDisabled ? "none" : "auto",
+														}}
+														onClick={() => {
+															if (!isDisabled) setSelectedVariant(v);
 														}}
 													>
 														<Box
+															component="img"
+															src={toImageUrl((v as any).image)}
+															alt=""
 															sx={{
-																width: 80,
-																height: 80,
-																display: "flex",
-																alignItems: "center",
-																justifyContent: "center",
-																overflow: "hidden",
-																border: "1px solid",
-																borderColor: isSelected
-																	? "primary.main"
-																	: "rgba(0,0,0,0.12)",
-																borderBottom: 0,
-																bgcolor: isSelected
-																	? "rgba(25,118,210,0.06)"
-																	: "transparent",
-																cursor: "pointer",
+																width: "100%",
+																height: "100%",
+																objectFit: "contain",
+																p: 1,
+																filter: isDisabled ? "grayscale(1)" : "none",
 															}}
-															onClick={() => setSelectedVariant(v)}
-														>
-															<Box
-																component="img"
-																src={toImageUrl((v as any).image)}
-																alt=""
-																sx={{
-																	width: "100%",
-																	height: "100%",
-																	objectFit: "contain",
-																	p: 1,
-																}}
-															/>
-														</Box>
-
-														<Button
-															variant={isSelected ? "contained" : "outlined"}
-															onClick={() => setSelectedVariant(v)}
-															sx={{
-																minWidth: 80,
-																height: 44,
-																p: 0,
-																borderTopLeftRadius: 0,
-																borderTopRightRadius: 0,
-																borderBottomLeftRadius: 8,
-																borderBottomRightRadius: 8,
-																fontWeight: isSelected ? 700 : 400,
-																textTransform: "none",
-															}}
-														>
-															{label} МЛ
-														</Button>
+														/>
 													</Box>
-												);
-											})}
-									</Box>
 
-									{/* BOTTOM ROW */}
-									<Box sx={{ display: "flex", gap: 1, justifyContent: "center", flexWrap: "nowrap" }}>
-										{variants
-											.filter((v) => !["5", "10", "20"].includes(tLocal(v.name).trim()))
-											.map((v) => {
-												const label = tLocal(v.name).trim();
-												const isSelected = selectedVariant?.sku === v.sku;
-
-												return (
 													<Button
-														key={v.sku}
 														variant={isSelected ? "contained" : "outlined"}
-														onClick={() => setSelectedVariant(v)}
+														disabled={isDisabled}
+														onClick={() => {
+															if (!isDisabled) setSelectedVariant(v);
+														}}
 														sx={{
 															minWidth: 80,
 															height: 44,
-															borderRadius: 8,
+															p: 0,
+															borderTopLeftRadius: 0,
+															borderTopRightRadius: 0,
+															borderBottomLeftRadius: 8,
+															borderBottomRightRadius: 8,
 															fontWeight: isSelected ? 700 : 400,
 															textTransform: "none",
 														}}
 													>
 														{label} МЛ
 													</Button>
-												);
-											})}
-									</Box>
+												</Box>
+											);
+										})}
+								</Box>
+
+								<Box sx={{ display: "flex", gap: 1, justifyContent: "center", flexWrap: "nowrap" }}>
+									{variants
+										.filter((v) => !["5", "10", "20"].includes(v.name.ua.trim()))
+										.map((v) => {
+											const label = v.name.ua.trim();
+											const isSelected = selectedVariant?.name.ua.trim() === label;
+											const isDisabled = !v.isActive;
+
+											return (
+												<Button
+													key={v.name.ua}
+													variant={isSelected ? "contained" : "outlined"}
+													disabled={isDisabled}
+													onClick={() => {
+														if (!isDisabled) setSelectedVariant(v);
+													}}
+													sx={{
+														minWidth: 80,
+														height: 44,
+														borderRadius: 8,
+														fontWeight: isSelected ? 700 : 400,
+														textTransform: "none",
+														opacity: isDisabled ? 0.5 : 1,
+													}}
+												>
+													{label} МЛ
+												</Button>
+											);
+										})}
 								</Box>
 							</Box>
-						</>
+						</Box>
 					)}
 
 					<Stack direction="row" alignItems="center" spacing={2} mb={4}>
@@ -294,20 +298,17 @@ export function ProductDetailPage() {
 								<AddIcon fontSize="small" />
 							</IconButton>
 						</Stack>
-
-						<Typography variant="body2" color="text.secondary">
-							{t("product.inStock", "В наличии")}: {selectedVariant?.stock ?? product.stock}
-						</Typography>
 					</Stack>
 
 					<Button
 						fullWidth
 						size="large"
 						variant="contained"
-						disabled={!selectedVariant || product.stock === 0}
+						disabled={!selectedVariant || !selectedVariant.isActive || product.stock === 0}
 						sx={{ height: 56, fontSize: 16, fontWeight: 600, mb: 4 }}
 						onClick={() =>
 							selectedVariant &&
+							selectedVariant.isActive &&
 							dispatch(
 								addToCart({
 									productId: product._id,
@@ -334,15 +335,15 @@ export function ProductDetailPage() {
 					<Divider sx={{ my: 3 }} />
 
 					<Stack direction="row" spacing={4}>
-						<Stack direction="row" spacing={1} alignItems="center">
+						{/* <Stack direction="row" spacing={1} alignItems="center">
 							<ShareIcon fontSize="small" />
 							<Typography variant="body2">{t("product.share", "Поделиться")}</Typography>
-						</Stack>
+						</Stack> */}
 
-						<Stack direction="row" spacing={1} alignItems="center">
+						{/* <Stack direction="row" spacing={1} alignItems="center">
 							<MailOutlineIcon fontSize="small" />
 							<Typography variant="body2">{t("product.contact", "Контакты")}</Typography>
-						</Stack>
+						</Stack> */}
 					</Stack>
 				</Box>
 			</Stack>

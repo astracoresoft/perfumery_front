@@ -56,8 +56,6 @@ export function Header() {
 
 	const navItems = [{ label: t("nav.home"), path: "/" }];
 
-	/* ================= GROUP CATEGORIES ================= */
-
 	const groupedCategories = useMemo(() => {
 		const searchValue = (open ? mobileSearch : brandSearch).toLowerCase();
 

@@ -30,10 +30,12 @@ const CartSection = () => {
 			) : (
 				items.map((item) => (
 					<CartProductItem
-						key={`${item.productId}-${item.variant.sku}`}
+						key={`${item.productId}-${item.variant.name.ua}`}
 						item={item}
-						onQtyChange={(productId, sku, qty) => dispatch(updateQty({ productId, sku, qty }))}
-						onRemove={(productId, sku) => dispatch(removeFromCart({ productId, sku }))}
+						onQtyChange={(productId, variantName, qty) =>
+							dispatch(updateQty({ productId, variantName, qty }))
+						}
+						onRemove={(productId, variantName) => dispatch(removeFromCart({ productId, variantName }))}
 					/>
 				))
 			)}
@@ -43,7 +45,7 @@ const CartSection = () => {
 			<Stack direction="row" justifyContent="space-between" mt={4}>
 				<Typography fontWeight={700}>{t("common.total")}</Typography>
 				<Typography fontWeight={700}>
-					{total} {currency}
+					{total.toFixed(2)} {currency}
 				</Typography>
 			</Stack>
 
