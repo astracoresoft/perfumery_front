@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import { useMemo, useState } from "react";
-import { Box, Stack, Typography, TextField, Button, Divider, Paper, Chip } from "@mui/material";
+import { Box, Stack, Typography, TextField, Button, Divider, Paper, Chip, CircularProgress } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { Navigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -100,6 +100,7 @@ export function CheckoutPage() {
 	});
 
 	const [orderSuccess, setOrderSuccess] = useState(false);
+	const [isSubmitting, setIsSubmitting] = useState(false);
 
 	if (!items.length && !orderSuccess) {
 		return <Navigate to="/cart" replace />;
@@ -198,7 +199,7 @@ export function CheckoutPage() {
 	}, [form]);
 
 	const handleConfirmOrder = async () => {
-		if (!validateForm()) return;
+		if (!validateForm() || isSubmitting) return;
 
 		const groupedItems: CheckoutCartItemPayload[] = items.map((item) => ({
 			productId: item.productId,
@@ -240,11 +241,14 @@ export function CheckoutPage() {
 		};
 
 		try {
+			setIsSubmitting(true);
 			await createOrder(order);
 			dispatch(clearCart());
 			setOrderSuccess(true);
 		} catch (error) {
 			console.error("ORDER_SEND_ERROR", error);
+		} finally {
+			setIsSubmitting(false);
 		}
 	};
 
@@ -290,6 +294,7 @@ export function CheckoutPage() {
 							onChange={handleChange("fullName")}
 							error={!!errors.fullName}
 							helperText={errors.fullName}
+							disabled={isSubmitting}
 						/>
 
 						<TextField
@@ -300,6 +305,7 @@ export function CheckoutPage() {
 							onChange={handleChange("phone")}
 							error={!!errors.phone}
 							helperText={errors.phone}
+							disabled={isSubmitting}
 						/>
 
 						<TextField
@@ -310,6 +316,7 @@ export function CheckoutPage() {
 							onChange={handleChange("email")}
 							error={!!errors.email}
 							helperText={errors.email}
+							disabled={isSubmitting}
 						/>
 
 						<TextField
@@ -320,6 +327,7 @@ export function CheckoutPage() {
 							onChange={handleChange("city")}
 							error={!!errors.city}
 							helperText={errors.city}
+							disabled={isSubmitting}
 						/>
 
 						<TextField
@@ -330,6 +338,7 @@ export function CheckoutPage() {
 							onChange={handleChange("address")}
 							error={!!errors.address}
 							helperText={errors.address}
+							disabled={isSubmitting}
 						/>
 
 						<TextField
@@ -339,6 +348,7 @@ export function CheckoutPage() {
 							fullWidth
 							value={form.comment}
 							onChange={handleChange("comment")}
+							disabled={isSubmitting}
 						/>
 					</Stack>
 
@@ -347,7 +357,7 @@ export function CheckoutPage() {
 						size="large"
 						variant="contained"
 						onClick={handleConfirmOrder}
-						disabled={!isFormValid}
+						disabled={!isFormValid || isSubmitting}
 						sx={{
 							mt: 4,
 							height: 56,
@@ -355,7 +365,7 @@ export function CheckoutPage() {
 							fontWeight: 600,
 						}}
 					>
-						{t("checkout.confirmOrder")}
+						{isSubmitting ? <CircularProgress size={24} color="inherit" /> : t("checkout.confirmOrder")}
 					</Button>
 				</Box>
 
