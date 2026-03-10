@@ -17,7 +17,8 @@
     "details": "Детальніше",
     "cart": "Кошик",
     "checkout": "Оформити замовлення",
-    "total": "Разом"
+    "total": "Разом",
+    "rozpiv": "Розпив"
   },
   "filters": {
     "sortNameAsc": "Назва A → Z",

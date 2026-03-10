@@ -12,13 +12,16 @@ import {
 	useTheme,
 	useMediaQuery,
 	CardMedia,
+	FormControl,
+	InputLabel,
+	Select,
+	MenuItem,
 } from "@mui/material";
+import type { SelectChangeEvent } from "@mui/material/Select";
 import { useParams, useNavigate } from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import StarIcon from "@mui/icons-material/Star";
-// import ShareIcon from "@mui/icons-material/Share";
-// import MailOutlineIcon from "@mui/icons-material/MailOutline";
 import { useEffect, useMemo, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useTranslation } from "react-i18next";
@@ -31,6 +34,8 @@ import type { ProductVariant } from "@/types/productCard.type";
 
 import placeholderImg from "@/assets/images/testPerfume.png";
 import { tLocal } from "@/i18n/i18n";
+
+const SMALL_VARIANTS = ["5", "10", "20"];
 
 export function ProductDetailPage() {
 	const { t } = useTranslation();
@@ -66,12 +71,38 @@ export function ProductDetailPage() {
 
 	const variants: ProductVariant[] = useMemo(() => product?.variants ?? [], [product]);
 
+	const normalizedVariants = useMemo(
+		() =>
+			variants.map((variant) => ({
+				...variant,
+				label: variant.name.ua.trim(),
+			})),
+		[variants],
+	);
+
+	const imageVariants = useMemo(
+		() => normalizedVariants.filter((variant) => SMALL_VARIANTS.includes(variant.label)),
+		[normalizedVariants],
+	);
+
+	const textVariants = useMemo(
+		() => normalizedVariants.filter((variant) => !SMALL_VARIANTS.includes(variant.label)),
+		[normalizedVariants],
+	);
+
 	useEffect(() => {
-		if (variants.length > 0) {
-			const firstActiveVariant = variants.find((v) => v.isActive) ?? variants[0];
-			setSelectedVariant(firstActiveVariant);
+		if (normalizedVariants.length === 0) {
+			setSelectedVariant(null);
+			return;
 		}
-	}, [variants]);
+
+		const firstActiveRegular =
+			normalizedVariants.find((variant) => variant.isActive && !SMALL_VARIANTS.includes(variant.label)) ?? null;
+
+		const fallbackActive = normalizedVariants.find((variant) => variant.isActive) ?? null;
+
+		setSelectedVariant(firstActiveRegular ?? fallbackActive ?? normalizedVariants[0] ?? null);
+	}, [normalizedVariants]);
 
 	if (loading) {
 		return (
@@ -105,6 +136,31 @@ export function ProductDetailPage() {
 		return `${API_ORIGIN}${url}`;
 	};
 
+	const isSmallSelected = !!selectedVariant && SMALL_VARIANTS.includes(selectedVariant.name.ua.trim());
+
+	const displayImage = (() => {
+		if (!selectedVariant) {
+			return toImageUrl(product.images?.[0]?.url) || placeholderImg;
+		}
+
+		if (isSmallSelected && (selectedVariant as any).image) {
+			return toImageUrl((selectedVariant as any).image) || placeholderImg;
+		}
+
+		return toImageUrl(product.images?.[0]?.url) || placeholderImg;
+	})();
+
+	const selectedSmallVariantValue = isSmallSelected ? (selectedVariant?.name.ua.trim() ?? "") : "";
+
+	const handleRozpyvChange = (event: SelectChangeEvent<string>) => {
+		const value = event.target.value;
+		const variant = normalizedVariants.find((v) => v.label === value);
+
+		if (variant && variant.isActive) {
+			setSelectedVariant(variant);
+		}
+	};
+
 	return (
 		<Box maxWidth="1200px" mx="auto" px={{ xs: 2, md: 6 }} py={6}>
 			<Stack direction={isMobile ? "column" : "row"} spacing={6} alignItems="flex-start">
@@ -133,7 +189,7 @@ export function ProductDetailPage() {
 					>
 						<CardMedia
 							component="img"
-							image={toImageUrl(product.images?.[0]?.url) || placeholderImg}
+							image={displayImage}
 							sx={{
 								width: "100%",
 								height: "100%",
@@ -166,104 +222,59 @@ export function ProductDetailPage() {
 						{selectedVariant?.price.current} {selectedVariant?.price.currency}
 					</Typography>
 
-					{variants.length > 0 && (
+					{normalizedVariants.length > 0 && (
 						<Box sx={{ mb: 4 }}>
-							<Box sx={{ display: "flex", flexDirection: "column", gap: 2, width: "100%" }}>
-								<Box sx={{ display: "flex", gap: 1, justifyContent: "center", flexWrap: "nowrap" }}>
-									{variants
-										.filter((v) => ["5", "10", "20"].includes(v.name.ua.trim()))
-										.map((v) => {
-											const label = v.name.ua.trim();
-											const isSelected = selectedVariant?.name.ua.trim() === label;
-											const isDisabled = !v.isActive;
-
-											return (
-												<Box
-													key={v.name.ua}
-													sx={{
-														display: "flex",
-														flexDirection: "column",
-														alignItems: "center",
-														opacity: isDisabled ? 0.5 : 1,
-													}}
+							<Box
+								sx={{
+									display: "flex",
+									flexDirection: "column",
+									gap: 1.5,
+									width: "100%",
+								}}
+							>
+								{imageVariants.length > 0 && (
+									<FormControl fullWidth size="small">
+										<InputLabel id={`rozpyv-label-${product._id}`}>{t("common.rozpiv")}</InputLabel>
+										<Select
+											labelId={`rozpyv-label-${product._id}`}
+											value={selectedSmallVariantValue}
+											label={`${t("common.rozpiv")}`}
+											displayEmpty
+											onChange={handleRozpyvChange}
+											renderValue={(selected) => {
+												if (!selected) return t("common.rozpiv");
+												return `${selected} МЛ`;
+											}}
+											sx={{
+												borderRadius: 2,
+											}}
+										>
+											{imageVariants.map((variant) => (
+												<MenuItem
+													key={variant.sku}
+													value={variant.label}
+													disabled={!variant.isActive}
 												>
-													<Box
-														sx={{
-															width: 80,
-															height: 80,
-															display: "flex",
-															alignItems: "center",
-															justifyContent: "center",
-															overflow: "hidden",
-															border: "1px solid",
-															borderColor: isSelected
-																? "primary.main"
-																: "rgba(0,0,0,0.12)",
-															borderBottom: 0,
-															bgcolor: isSelected
-																? "rgba(25,118,210,0.06)"
-																: "transparent",
-															cursor: isDisabled ? "not-allowed" : "pointer",
-															pointerEvents: isDisabled ? "none" : "auto",
-														}}
-														onClick={() => {
-															if (!isDisabled) setSelectedVariant(v);
-														}}
-													>
-														<Box
-															component="img"
-															src={toImageUrl((v as any).image)}
-															alt=""
-															sx={{
-																width: "100%",
-																height: "100%",
-																objectFit: "contain",
-																p: 1,
-																filter: isDisabled ? "grayscale(1)" : "none",
-															}}
-														/>
-													</Box>
+													{variant.label} МЛ
+												</MenuItem>
+											))}
+										</Select>
+									</FormControl>
+								)}
 
-													<Button
-														variant={isSelected ? "contained" : "outlined"}
-														disabled={isDisabled}
-														onClick={() => {
-															if (!isDisabled) setSelectedVariant(v);
-														}}
-														sx={{
-															minWidth: 80,
-															height: 44,
-															p: 0,
-															borderTopLeftRadius: 0,
-															borderTopRightRadius: 0,
-															borderBottomLeftRadius: 8,
-															borderBottomRightRadius: 8,
-															fontWeight: isSelected ? 700 : 400,
-															textTransform: "none",
-														}}
-													>
-														{label} МЛ
-													</Button>
-												</Box>
-											);
-										})}
-								</Box>
-
-								<Box sx={{ display: "flex", gap: 1, justifyContent: "center", flexWrap: "nowrap" }}>
-									{variants
-										.filter((v) => !["5", "10", "20"].includes(v.name.ua.trim()))
-										.map((v) => {
-											const label = v.name.ua.trim();
-											const isSelected = selectedVariant?.name.ua.trim() === label;
-											const isDisabled = !v.isActive;
+								{textVariants.length > 0 && (
+									<Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+										{textVariants.map((variant) => {
+											const isSelected = selectedVariant?.name.ua.trim() === variant.label;
+											const isDisabled = !variant.isActive;
 
 											return (
 												<Button
-													key={v.name.ua}
+													key={variant.sku}
 													variant={isSelected ? "contained" : "outlined"}
 													disabled={isDisabled}
 													onClick={() => {
-														if (!isDisabled) setSelectedVariant(v);
+														if (!isDisabled) setSelectedVariant(variant);
 													}}
 													sx={{
 														minWidth: 80,
@@ -274,11 +285,12 @@ export function ProductDetailPage() {
 														opacity: isDisabled ? 0.5 : 1,
 													}}
 												>
-													{label} МЛ
+													{variant.label} МЛ
 												</Button>
 											);
 										})}
-								</Box>
+									</Stack>
+								)}
 							</Box>
 						</Box>
 					)}
@@ -313,10 +325,16 @@ export function ProductDetailPage() {
 								addToCart({
 									productId: product._id,
 									title: tLocal(product.name),
-									image: toImageUrl(product.images?.[0]?.url) || placeholderImg,
+									image:
+										isSmallSelected && (selectedVariant as any).image
+											? toImageUrl((selectedVariant as any).image)
+											: toImageUrl(product.images?.[0]?.url) || placeholderImg,
 									variant: {
 										...selectedVariant,
-										image: (selectedVariant as any).image ?? product.images?.[0]?.url ?? "",
+										image:
+											isSmallSelected && (selectedVariant as any).image
+												? (selectedVariant as any).image
+												: (product.images?.[0]?.url ?? ""),
 									},
 									qty,
 									price: selectedVariant.price.current,
@@ -334,17 +352,7 @@ export function ProductDetailPage() {
 
 					<Divider sx={{ my: 3 }} />
 
-					<Stack direction="row" spacing={4}>
-						{/* <Stack direction="row" spacing={1} alignItems="center">
-							<ShareIcon fontSize="small" />
-							<Typography variant="body2">{t("product.share", "Поделиться")}</Typography>
-						</Stack> */}
-
-						{/* <Stack direction="row" spacing={1} alignItems="center">
-							<MailOutlineIcon fontSize="small" />
-							<Typography variant="body2">{t("product.contact", "Контакты")}</Typography>
-						</Stack> */}
-					</Stack>
+					<Stack direction="row" spacing={4} />
 				</Box>
 			</Stack>
 		</Box>

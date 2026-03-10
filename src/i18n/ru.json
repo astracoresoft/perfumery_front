@@ -17,7 +17,8 @@
     "details": "Подробнее",
     "cart": "Корзина",
     "checkout": "Оформить заказ",
-    "total": "Итого"
+    "total": "Итого",
+    "rozpiv": "Распив"
   },
   "filters": {
     "sortNameAsc": "Название A → Z",
