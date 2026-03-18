@@ -169,16 +169,18 @@ export function ProductDetailPage() {
 					sx={{
 						bgcolor: "#fafafa",
 						borderRadius: 4,
-						p: 4,
+						p: { xs: 2, md: 4 },
 						display: "flex",
 						justifyContent: "center",
+						width: "100%",
 					}}
 				>
 					<Box
 						sx={{
 							margin: "auto",
 							width: "100%",
-							height: "100%",
+							maxWidth: "500px",
+							aspectRatio: "1 / 1",
 							display: "flex",
 							alignItems: "center",
 							justifyContent: "center",
@@ -193,8 +195,10 @@ export function ProductDetailPage() {
 							sx={{
 								width: "100%",
 								height: "100%",
+								maxWidth: "600px",
+								maxHeight: "600px",
 								objectFit: "contain",
-								padding: 1,
+								p: 1,
 							}}
 						/>
 					</Box>
